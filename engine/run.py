@@ -29,6 +29,7 @@ from .detect import detect
 from .evidence import build
 from .narrate import MODEL, narrate
 from .scan import CANDIDATES_TESTED, MIN_REQUESTS, MIN_Z, scan
+from .act import Actor
 from .trace import Tracer
 
 
@@ -39,7 +40,9 @@ def _now() -> str:
 def run(out_dir: Path, use_llm: bool = True) -> int:
     client = Client()
     tracer = Tracer()
+    actor = Actor()
     out_dir.mkdir(parents=True, exist_ok=True)
+    pinned: list[str] = []
 
     t0 = _now()
     incidents = detect(client)
@@ -107,6 +110,17 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
                           input=ev, output=prose,
                           metadata={"guard": meta["source"],
                                     "unsourced_numbers": meta["unsourced"]})
+
+        # Act on it: pin the culprit as a saved view someone will find later.
+        # Only when a segment was actually implicated — pinning a view for a
+        # global movement would be noise.
+        a0 = _now()
+        pin = actor.pin_culprit(att)
+        if pin:
+            pinned.append(pin)
+            tracer.span(tid, "6-act", a0, _now(), parent=inv,
+                        input={"tool": "clickstack_save_saved_search"},
+                        output={"saved_search": pin})
 
         all_ev.append(ev)
         verified = not meta["unsourced"]
@@ -177,6 +191,10 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
 
     print(f"{len(all_ev)} incident(s) -> {out_dir}/")
     print(f"  run trace: {tracer.url(tid)}")
+    for p in pinned:
+        print(f"  pinned in HyperDX: {p}")
+    if actor.error and not pinned:
+        print(f"  ! nothing pinned: {actor.error}")
     for line in trace_lines:
         print("  " + line)
     if not ok:
