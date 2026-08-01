@@ -29,19 +29,16 @@ jobs:
           echo "event: ${{ github.event_name }}"
           echo "payload: ${{ toJSON(github.event.client_payload) }}"
 
+      # Credentials come from a file the runner owns, not from GitHub secrets.
+      # The runner is ON the VPC, so it already has local access; this also
+      # avoids needing repo-admin rights to set secrets, and matches the
+      # ch-hacker convention ("the VPC runner owns .env ... no secret handled
+      # by hand"). ~/rca/rca.env is mode 600 and carries CH_* (ClickHouse
+      # Cloud), CH_DB, CH_CLIENT, DEEPSEEK_API_KEY and LANGFUSE_*.
       - name: Run the investigation
-        env:
-          CH_HOST: ${{ secrets.CH_HOST }}
-          CH_USER: ${{ secrets.CH_USER }}
-          CH_PASSWORD: ${{ secrets.CH_PASSWORD }}
-          CH_DB: ${{ vars.CH_DB || 'pw' }}
-          CH_CLIENT: /usr/local/bin/clickhouse
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
-          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
-          # On the runner Langfuse is localhost — no Cloudflare Access in the way.
-          LANGFUSE_HOST: http://127.0.0.1:3000
-        run: python3 -m engine.run --out out/
+        run: |
+          set -a; . "$HOME/rca/rca.env"; set +a
+          python3 -m engine.run --out out/
 
       - name: Publish the bundle
         uses: actions/upload-artifact@v4

@@ -34,10 +34,16 @@ def _load_env(env_file: Path) -> dict[str, str]:
 
 class Client:
     def __init__(self, env_file: Path | None = None, binary: Path | None = None):
-        env = _load_env(Path(env_file or os.environ.get("CH_ENV", DEFAULT_ENV)))
-        self.host = env["CH_HOST"]
-        self.user = env["CH_USER"]
-        self.password = env["CH_PASSWORD"]
+        # Environment first, file second. The CI runner and the deploy path
+        # supply credentials as env vars and have no dotfile — insisting on the
+        # file made the engine unrunnable anywhere but the laptop it was
+        # written on.
+        env: dict[str, str] = {}
+        if not all(os.environ.get(k) for k in ("CH_HOST", "CH_USER", "CH_PASSWORD")):
+            env = _load_env(Path(env_file or os.environ.get("CH_ENV", DEFAULT_ENV)))
+        self.host = os.environ.get("CH_HOST") or env["CH_HOST"]
+        self.user = os.environ.get("CH_USER") or env["CH_USER"]
+        self.password = os.environ.get("CH_PASSWORD") or env["CH_PASSWORD"]
         self.binary = Path(binary or os.environ.get("CH_CLIENT", DEFAULT_CLIENT))
         if not self.binary.exists():
             raise SystemExit(f"missing clickhouse client: {self.binary}")
