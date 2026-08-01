@@ -1,0 +1,50 @@
+name: RCA on alert
+
+# Closes the "from alert to answer" loop. HyperDX raises an alert, its webhook
+# fires repository_dispatch [rca-alert], and this runs the investigation on the
+# self-hosted runner — where Langfuse is plain localhost, so traces record
+# without the Cloudflare Access tunnel.
+#
+# NOTE: HyperDX is deliberately NOT load-bearing (see docs/DESIGN.md). detect.sql
+# on a schedule is the real alert source. This path exists so the loop is
+# demonstrable end to end, and so an external alert CAN drive it.
+
+on:
+  repository_dispatch:
+    types: [rca-alert]
+  workflow_dispatch:
+
+concurrency:
+  group: rca-run
+  cancel-in-progress: false
+
+jobs:
+  investigate:
+    runs-on: [self-hosted, vpc]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Report what triggered this
+        run: |
+          echo "event: ${{ github.event_name }}"
+          echo "payload: ${{ toJSON(github.event.client_payload) }}"
+
+      - name: Run the investigation
+        env:
+          CH_HOST: ${{ secrets.CH_HOST }}
+          CH_USER: ${{ secrets.CH_USER }}
+          CH_PASSWORD: ${{ secrets.CH_PASSWORD }}
+          CH_DB: ${{ vars.CH_DB || 'pw' }}
+          CH_CLIENT: /usr/local/bin/clickhouse
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          # On the runner Langfuse is localhost — no Cloudflare Access in the way.
+          LANGFUSE_HOST: http://127.0.0.1:3000
+        run: python3 -m engine.run --out out/
+
+      - name: Publish the bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: rca-bundle-${{ github.run_number }}
+          path: out/

@@ -170,19 +170,30 @@ db.sources.updateMany({ team: team._id, name: { $in: HIDE } }, { $set: { disable
 // source (see docs/DESIGN.md). This alert exists so the "from alert to answer"
 // loop is visible and demonstrable in the UI, not because the pipeline depends
 // on it. The webhook URL is a placeholder until a dispatch PAT is wired.
+// The token is read from the environment at provision time, so it reaches
+// Mongo but never git. Without it the webhook is still created, just inert —
+// a missing PAT should not fail the whole provisioning run.
+const pat = process.env.GH_DISPATCH_PAT;
+const repo = process.env.GH_REPO || 'ss-loves-AC/parts-watcher-2';
+
 db.webhooks.updateOne(
-  { team: team._id, name: 'rca-dispatch' },
+  { team: team._id, name: 'rca-dispatch', service: 'generic' },
   {
     $set: {
       team: team._id, name: 'rca-dispatch', service: 'generic',
-      url: process.env.ALERT_WEBHOOK_URL || 'https://example.invalid/rca-dispatch',
-      description: 'Fires an RCA investigation. Replace url with a GitHub repository_dispatch endpoint.',
+      url: `https://api.github.com/repos/${repo}/dispatches`,
+      description: 'Fires repository_dispatch [rca-alert], which runs engine.run on the self-hosted runner.',
+      headers: pat
+        ? { Authorization: `Bearer ${pat}`, Accept: 'application/vnd.github+json' }
+        : { Accept: 'application/vnd.github+json' },
+      body: JSON.stringify({ event_type: 'rca-alert' }),
       updatedAt: now,
     },
     $setOnInsert: { createdAt: now, __v: 0 },
   },
   { upsert: true },
 );
+print(pat ? 'webhook: authenticated' : 'webhook: NO PAT — created inert (set GH_DISPATCH_PAT)');
 const hook = db.webhooks.findOne({ team: team._id, name: 'rca-dispatch' });
 const unfilled = db.savedsearches.findOne({ team: team._id, name: 'Unfilled ad requests' });
 
