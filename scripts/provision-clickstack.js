@@ -225,12 +225,14 @@ db.sources.updateOne(
       // far past normal a finding sits.
       severityTextExpression: "multiIf(abs(peak_wobbles) >= 20, 'error', abs(peak_wobbles) >= 8, 'warn', 'info')",
       serviceNameExpression: 'metric',
-      bodyExpression: "concat(metric, ' ', direction, ' ', toString(round(effect_pct, 2)), '% from ', toString(window_start))",
-      implicitColumnExpression: "concat(metric, ' ', direction, ' ', toString(round(effect_pct, 2)), '%')",
+      // The one-line summary a human reads in the list: what moved, by how
+      // much, and what caused it.
+      bodyExpression: "concat(metric, ' ', toString(round(effect_pct, 1)), '% — ', if(cause = '', 'investigating…', cause))",
+      implicitColumnExpression: "concat(metric, ' ', toString(round(effect_pct, 1)), '% — ', if(cause = '', 'investigating…', cause))",
       defaultTableSelectExpression:
-        'found_at,metric,window_start,window_end,direction,effect_pct,peak_wobbles,grain,baseline_rung',
+        'found_at,metric,window_start,effect_pct,verdict,cause,explained_pct,peak_wobbles,baseline_rung',
       eventAttributesExpression:
-        "map('metric', toString(metric), 'grain', toString(grain), 'direction', toString(direction), 'baseline_rung', toString(baseline_rung), 'source_db', toString(source_db))",
+        "map('metric', toString(metric), 'verdict', toString(verdict), 'cause', toString(cause), 'grain', toString(grain), 'baseline_rung', toString(baseline_rung), 'source_db', toString(source_db))",
       resourceAttributesExpression: "CAST(map(), 'Map(String, String)')",
       highlightedRowAttributeExpressions: [], highlightedTraceAttributeExpressions: [],
       materializedViews: [], querySettings: [], disabled: false,
@@ -247,7 +249,10 @@ db.savedsearches.updateOne(
   {
     $set: {
       team: team._id, name: 'Detections — anything found', source: detSource._id,
-      select: 'found_at, metric, window_start, window_end, direction, effect_pct, peak_wobbles, baseline_rung',
+      // Anomaly AND cause on one line. Without verdict/cause here a reader
+      // sees what moved but not why, and has to go somewhere else for half
+      // the answer.
+      select: 'found_at, metric, window_start, effect_pct, verdict, cause, explained_pct, peak_wobbles, baseline_rung',
       where: '1 = 1', whereLanguage: 'sql', orderBy: 'found_at DESC',
       tags: ['rca', 'detections'], filters: [], updatedAt: now,
     },
