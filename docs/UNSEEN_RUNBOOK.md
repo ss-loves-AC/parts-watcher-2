@@ -32,17 +32,31 @@ rehearsal; the rest is contingency.
 
 ---
 
-## 1. Load it (~40s)
+## 1. Load it (~60s)
 
 Put the new files in one directory. The loader expects the same four names:
 `ad_events.parquet`, `apps.csv`, `advertisers.csv`, `geo_device.csv`.
 
 ```bash
-DATA_DIR=/path/to/unseen CH_DB=unseen ./load/load.sh
+./scripts/load-unseen.sh /path/to/unseen unseen
 ```
 
-**Use a fresh database (`CH_DB=unseen`).** Never load over `pw` — if anything
-is wrong with the new file you still have a working system to fall back to.
+**Use `load-unseen.sh`, not `load.sh`.** The new events are most likely a
+CONTINUATION of the data we already hold, not a replacement — and that
+distinction decides how well detection works:
+
+- **Continuation** (new events start after ours end) → the script combines
+  them with the existing 9M rows, so every new day has three weeks of history
+  behind it and the detector baselines at **rung 1**, its strongest setting.
+- **Replacement** (ranges overlap) → combining would double-count, so it loads
+  the new events alone and accepts whatever history they carry.
+
+It compares the ranges and decides itself, printing which mode it chose.
+Rehearsed both ways: a continuation produced 10.9M rows spanning Jun 1 – Aug 2
+and `rung1_same_weekday_3w`.
+
+**It writes to a fresh database.** Never load over `pw` — if anything is wrong
+with the new file you still have a working system to fall back to.
 
 ### Gate — do not continue unless all of these hold
 
@@ -54,7 +68,8 @@ The loader prints them; it also fails hard on the first two.
 | cube integrity | no dimension collapsed | a dimension has one value — check the CSV actually has data |
 | `unmatched_geo` / `unmatched_app` | `0` | join keys differ; the new dims may not cover the new events |
 | `distinct_os` / `distinct_country` / `distinct_category` | > 1 | a dimension collapsed; **totals still reconcile in this case, so trust these, not the row count** |
-| `rows` | equals the parquet's row count | |
+| `rows` | parquet count, plus 9M if CONTINUATION | |
+| no `FATAL: … event_time before 2000` | — | the parquet's timestamp column isn't named `event_time`; **Parquet inserts match by NAME, not position**, so it silently defaulted to 1970. The script prints the actual column names |
 
 ---
 
