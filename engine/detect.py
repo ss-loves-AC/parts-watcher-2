@@ -235,7 +235,10 @@ def _dedupe(incidents: list[Incident]) -> list[Incident]:
             clash.start = min(clash.start, inc.start)
             clash.end = max(clash.end, inc.end)
             clash.end_exclusive = max(clash.end_exclusive, inc.end_exclusive)
-            clash.grain = f"{clash.grain}+{inc.grain}"
+            # Merge grain labels as a SET: repeated dedupe passes otherwise
+            # accumulate 'daily+hourly+hourly+hourly'.
+            clash.grain = "+".join(
+                dict.fromkeys(clash.grain.split("+") + inc.grain.split("+")))
     return out
 
 

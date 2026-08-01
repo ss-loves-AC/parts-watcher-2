@@ -65,7 +65,11 @@ class Client:
         for key, value in params.items():
             cmd += [f"--param_{key}", str(value)]
 
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+        # stdin=DEVNULL is load-bearing for INSERT ... VALUES: given --query,
+        # the client keeps reading stdin for more rows and blocks until EOF,
+        # so an insert that should take milliseconds hangs until the timeout.
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180,
+                              stdin=subprocess.DEVNULL)
         if proc.returncode != 0:
             raise RuntimeError(f"query failed:\n{proc.stderr.strip()}")
         return [json.loads(line) for line in proc.stdout.splitlines() if line.strip()]

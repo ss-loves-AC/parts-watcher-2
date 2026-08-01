@@ -206,6 +206,56 @@ db.savedsearches.updateOne(
   { upsert: true },
 );
 
+// ------------------------------------------------- the detector's own output
+// Alerting on `detections` rather than on a symptom is what makes this
+// segment-agnostic. The previous alert counted Android 15 non-fills, which
+// only works because we already knew the answer; it would stay silent if the
+// unseen data broke iOS instead. Here the detector decides what is abnormal —
+// via the baseline ladder and a robust z-score, per metric — and the alert
+// just asks whether anything was found.
+db.sources.updateOne(
+  { team: team._id, name: 'Detections' },
+  {
+    $set: {
+      team: team._id, name: 'Detections', kind: 'log', connection: conn._id,
+      from: { databaseName: database, tableName: 'detections' },
+      timestampValueExpression: 'found_at',
+      displayedTimestampValueExpression: 'found_at',
+      // Bigger movements read as errors, so severity-aware tools rank by how
+      // far past normal a finding sits.
+      severityTextExpression: "multiIf(abs(peak_wobbles) >= 20, 'error', abs(peak_wobbles) >= 8, 'warn', 'info')",
+      serviceNameExpression: 'metric',
+      bodyExpression: "concat(metric, ' ', direction, ' ', toString(round(effect_pct, 2)), '% from ', toString(window_start))",
+      implicitColumnExpression: "concat(metric, ' ', direction, ' ', toString(round(effect_pct, 2)), '%')",
+      defaultTableSelectExpression:
+        'found_at,metric,window_start,window_end,direction,effect_pct,peak_wobbles,grain,baseline_rung',
+      eventAttributesExpression:
+        "map('metric', toString(metric), 'grain', toString(grain), 'direction', toString(direction), 'baseline_rung', toString(baseline_rung), 'source_db', toString(source_db))",
+      resourceAttributesExpression: "CAST(map(), 'Map(String, String)')",
+      highlightedRowAttributeExpressions: [], highlightedTraceAttributeExpressions: [],
+      materializedViews: [], querySettings: [], disabled: false,
+      updatedAt: now,
+    },
+    $setOnInsert: { createdAt: now, __v: 0 },
+  },
+  { upsert: true },
+);
+const detSource = db.sources.findOne({ team: team._id, name: 'Detections' });
+
+db.savedsearches.updateOne(
+  { team: team._id, name: 'Detections — anything found' },
+  {
+    $set: {
+      team: team._id, name: 'Detections — anything found', source: detSource._id,
+      select: 'found_at, metric, window_start, window_end, direction, effect_pct, peak_wobbles, baseline_rung',
+      where: '1 = 1', whereLanguage: 'sql', orderBy: 'found_at DESC',
+      tags: ['rca', 'detections'], filters: [], updatedAt: now,
+    },
+    $setOnInsert: { createdAt: now, __v: 0 },
+  },
+  { upsert: true },
+);
+
 // --------------------------------------------------------------- tidy the UI
 // The four OTEL sources belong to the warm-up stack and say nothing about this
 // project; a judge opening HyperDX should see ad data, not scaffolding.
@@ -245,26 +295,29 @@ db.webhooks.updateOne(
 );
 print(pat ? 'webhook: authenticated' : 'webhook: NO PAT — created inert (set GH_DISPATCH_PAT)');
 const hook = db.webhooks.findOne({ team: team._id, name: 'rca-dispatch' });
-const liveSearch = db.savedsearches.findOne({ team: team._id, name: 'LIVE — Android 15 not filling' });
+const detSearch = db.savedsearches.findOne({ team: team._id, name: 'Detections — anything found' });
 
-if (hook && liveSearch) {
+if (hook && detSearch) {
   db.alerts.updateOne(
-    { team: team._id, name: 'Android 15 fill collapse' },
+    { team: team._id, name: 'Detector found a movement' },
     {
       $set: {
         team: team._id,
-        name: 'Android 15 fill collapse',
+        name: 'Detector found a movement',
         source: 'saved_search',
-        savedSearch: liveSearch._id,
-        // Calibrated against the live stream, not guessed: a normal 5-minute
-        // window shows ~50 Android 15 non-fills; the injected collapse shows
-        // ~250. 150 sits clear of both.
-        threshold: 150,
+        savedSearch: detSearch._id,
+        // Threshold 0: fire if ANY detection appeared. There is deliberately
+        // no tuned number here — significance was already decided upstream by
+        // the baseline ladder and the robust z-score, per metric. A number in
+        // this box would be a second, worse opinion about the same question.
+        // detections rows are first-seen only (see load/detections.sql), so a
+        // finding cannot re-fire on every pass.
+        threshold: 0,
         thresholdType: 'above',
         interval: '5m',
         channel: { type: 'webhook', webhookId: hook._id.toString() },
         state: 'OK',
-        message: 'Android 15 fill rate collapsed — run an RCA.',
+        message: 'The detector found a metric movement — investigate it.',
         updatedAt: now,
       },
       $setOnInsert: { createdAt: now, __v: 0 },
@@ -273,7 +326,7 @@ if (hook && liveSearch) {
   );
 }
 print('--- alerts ---');
-db.alerts.deleteMany({ team: team._id, name: 'Fill failures above normal' });
+db.alerts.deleteMany({ team: team._id, name: { $in: ['Fill failures above normal', 'Android 15 fill collapse'] } });
 db.alerts.find({ team: team._id }, { name: 1, interval: 1, threshold: 1, state: 1 }).forEach((d) => print(`  ${d.name}  every ${d.interval}  >${d.threshold}  [${d.state}]`));
 
 print('--- sources after provisioning ---');
