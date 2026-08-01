@@ -1,0 +1,14 @@
+# credentials — never commit
+.clickhouse/
+*.env
+!*.env.example
+
+# large external inputs, deliberately kept outside the repo
+# (override paths with DATA_DIR / CH_CLIENT — see load/load.sh)
+data/
+bin/
+*.parquet
+
+__pycache__/
+.venv/
+.DS_Store
