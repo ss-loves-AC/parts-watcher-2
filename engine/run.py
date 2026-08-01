@@ -109,11 +109,17 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
                                     "unsourced_numbers": meta["unsourced"]})
 
         all_ev.append(ev)
+        verified = not meta["unsourced"]
         sections.append(
             f"## {ev['metric'].title()} — {ev['window']}  ·  **{ev['verdict']}**\n\n"
             f"{prose}\n\n"
-            f"<sub>narrated by {meta['source']}; "
-            f"{'every number verified against the evidence' if not meta['unsourced'] else 'unsourced: ' + str(meta['unsourced'])}</sub>\n"
+            # Lead with the trace, not the model. The trace is the evidence a
+            # judge can open and follow; the model is only provenance, and
+            # naming it first read as though the LLM were the authority.
+            f"<sub>"
+            f"{'✅ every figure machine-verified against the computed evidence' if verified else '⚠️ unsourced figures: ' + str(meta['unsourced'])}"
+            f" · [full trace of this investigation]({tracer.url(tid, inv)})"
+            f" · narrated by `{MODEL}`</sub>\n"
         )
         # Deep link straight to this investigation inside the run trace.
         trace_lines.append(
