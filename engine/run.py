@@ -45,32 +45,49 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
     incidents = detect(client)
     t1 = _now()
 
+    # ONE trace per run, with each investigation nested inside it. Emitting a
+    # top-level trace per incident meant every run added five entries to the
+    # Traces list, which buries the run you actually care about. A run is the
+    # unit of work; investigations are its parts.
+    tid = tracer.trace(
+        f"RCA run — {len(incidents)} incident(s)",
+        input={"database": DB, "detector": "sql/detect.sql"},
+        metadata={"database": DB,
+                  "baseline_rung": incidents[0].baseline_rung if incidents else None,
+                  "incidents": len(incidents)},
+        tags=["rca", "run"],
+    )
+    # Detection is one bulk query covering every incident, so it belongs at the
+    # run level rather than repeated inside each investigation.
+    detect_span = tracer.span(
+        tid, "1-detect (all metrics)", t0, t1,
+        input={"source": f"{DB}.segment_cube (dim_name='__total__')",
+               "sql": "sql/detect.sql"},
+        output={"incidents": [
+            {"metric": i.metric, "window": f"{i.start} -> {i.end_exclusive}",
+             "peak_wobbles": i.peak_wobbles, "effect_pct": i.effect_pct}
+            for i in incidents]},
+    )
+
     all_ev, sections, trace_lines, query_notes = [], [], [], []
 
     for inc in incidents:
-        tid = tracer.trace(
-            f"investigation: {inc.metric} {inc.start[:10]}",
+        # One span per investigation; its stages hang beneath it.
+        inv = tracer.span(
+            tid, f"investigation: {inc.metric} {inc.start[:10]}", t0, _now(),
             input={"metric": inc.metric, "window_start": inc.start,
                    "window_end": inc.end_exclusive},
-            metadata={"database": DB, "baseline_rung": inc.baseline_rung,
-                      "grain": inc.grain},
-            tags=["rca", inc.metric],
+            metadata={"baseline_rung": inc.baseline_rung, "grain": inc.grain},
         )
 
-        # Stage 1 is one bulk query for all incidents; attribute its span to
-        # each trace so a judge sees where the window came from.
-        tracer.span(tid, "1-detect", t0, t1,
-                    input={"source": f"{DB}.segment_cube (dim_name='__total__')",
-                           "sql": "sql/detect.sql"},
-                    output={"window": f"{inc.start} -> {inc.end_exclusive}",
-                            "peak_wobbles": inc.peak_wobbles,
-                            "effect_pct": inc.effect_pct,
-                            "baseline_rung": inc.baseline_rung})
+        # No per-investigation detect span: detection is a single bulk query,
+        # already recorded once at run level. Repeating it under each
+        # investigation added five identical nodes and hid the real work.
 
         s0 = _now()
         att = scan(client, inc)
         s1 = _now()
-        tracer.span(tid, "2-segment-scan + 3-refine", s0, s1,
+        tracer.span(tid, "2-segment-scan + 3-refine", s0, s1, parent=inv,
                     input={"sql": ["sql/segment_scan.sql", "sql/refine.sql"],
                            "min_z": MIN_Z, "min_requests_fallback": MIN_REQUESTS,
                            "candidates_tested": CANDIDATES_TESTED},
@@ -81,18 +98,15 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
         e0 = _now()
         ev = build(att)
         e1 = _now()
-        tracer.span(tid, "4-evidence", e0, e1, input=None, output=ev)
+        tracer.span(tid, "4-evidence", e0, e1, parent=inv, input=None, output=ev)
 
         n0 = _now()
         prose, meta = narrate(ev, use_llm=use_llm)
         n1 = _now()
-        tracer.generation(tid, "5-narrate", n0, n1, model=MODEL,
+        tracer.generation(tid, "5-narrate", n0, n1, model=MODEL, parent=inv,
                           input=ev, output=prose,
                           metadata={"guard": meta["source"],
                                     "unsourced_numbers": meta["unsourced"]})
-
-        tracer.finish_trace(tid, output={"diagnosis": prose, "verdict": att.verdict},
-                            metadata={"numbers_verified": not meta["unsourced"]})
 
         all_ev.append(ev)
         sections.append(
@@ -101,7 +115,9 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
             f"<sub>narrated by {meta['source']}; "
             f"{'every number verified against the evidence' if not meta['unsourced'] else 'unsourced: ' + str(meta['unsourced'])}</sub>\n"
         )
-        trace_lines.append(f"{ev['metric']:<16} {ev['window']:<22} {tracer.url(tid)}")
+        # Deep link straight to this investigation inside the run trace.
+        trace_lines.append(
+            f"{ev['metric']:<16} {ev['window']:<22} {tracer.url(tid, inv)}")
         query_notes.append(
             f"-- {ev['metric']} · {ev['window']} · verdict={ev['verdict']}\n"
             f"--   window     : {inc.start} -> {inc.end_exclusive}\n"
@@ -110,6 +126,14 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
             f"--   scan       : metric={inc.metric} min_z={MIN_Z}\n"
         )
 
+    tracer.finish_trace(
+        tid,
+        output={"incidents": [
+            {"metric": e["metric"], "window": e["window"], "verdict": e["verdict"],
+             "culprit": (e["culprit"] or {}).get("value")} for e in all_ev]},
+        metadata={"all_numbers_verified": all(
+            "unsourced" not in s for s in sections)},
+    )
     ok = tracer.flush()
     if not incidents:
         tracer.error = "no incidents detected — nothing to trace"
@@ -141,6 +165,7 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
     )
 
     print(f"{len(all_ev)} incident(s) -> {out_dir}/")
+    print(f"  run trace: {tracer.url(tid)}")
     for line in trace_lines:
         print("  " + line)
     if not ok:

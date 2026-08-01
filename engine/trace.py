@@ -90,21 +90,24 @@ class Tracer:
         return tid
 
     def span(self, trace_id: str, name: str, start: str, end: str,
-             *, input=None, output=None, metadata=None, level: str = "DEFAULT") -> str:
+             *, input=None, output=None, metadata=None, level: str = "DEFAULT",
+             parent: str | None = None) -> str:
         sid = _uuid()
         self._add("span-create", {
             "id": sid, "traceId": trace_id, "name": name,
-            "startTime": start, "endTime": end,
+            "startTime": start, "endTime": end, "parentObservationId": parent,
             "input": input, "output": output, "metadata": metadata, "level": level,
         })
         return sid
 
     def generation(self, trace_id: str, name: str, start: str, end: str,
-                   *, model: str, input=None, output=None, metadata=None) -> str:
+                   *, model: str, input=None, output=None, metadata=None,
+                   parent: str | None = None) -> str:
         gid = _uuid()
         self._add("generation-create", {
             "id": gid, "traceId": trace_id, "name": name,
             "startTime": start, "endTime": end, "model": model,
+            "parentObservationId": parent,
             "input": input, "output": output, "metadata": metadata,
         })
         return gid
@@ -115,9 +118,14 @@ class Tracer:
             "timestamp": _now(),
         })
 
-    def url(self, trace_id: str) -> str:
-        """The link a human clicks — public host, not the ingestion host."""
-        return f"{self.public_url}/trace/{trace_id}"
+    def url(self, trace_id: str, observation: str | None = None) -> str:
+        """The link a human clicks — public host, not the ingestion host.
+
+        With an observation id the UI opens focused on that node, so a single
+        run-level trace still yields a direct link per investigation.
+        """
+        base = f"{self.public_url}/trace/{trace_id}"
+        return f"{base}?observation={observation}" if observation else base
 
     # ----------------------------------------------------------------- guts
     def _add(self, type_: str, body: dict) -> None:
