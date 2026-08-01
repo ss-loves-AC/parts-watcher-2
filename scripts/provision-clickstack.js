@@ -156,6 +156,56 @@ for (const s of searches) {
 print('--- saved searches ---');
 db.savedsearches.find({ team: team._id }, { name: 1 }).forEach((d) => print(`  ${d.name}`));
 
+// ------------------------------------------------------- the live source
+// The provided dataset ends 2026-07-05, so an alert on it evaluating "the last
+// hour" sees zero rows forever — correct wiring that can never fire.
+// scripts/live-tick.sh replays history into now(); this source watches that.
+const liveDb = process.env.CH_LIVE_DB || 'pw_live';
+db.sources.updateOne(
+  { team: team._id, name: 'Ad Events (live)' },
+  {
+    $set: {
+      team: team._id, name: 'Ad Events (live)', kind: 'log', connection: conn._id,
+      from: { databaseName: liveDb, tableName: 'ad_events' },
+      timestampValueExpression: 'event_time',
+      displayedTimestampValueExpression: 'event_time',
+      severityTextExpression: "if(is_filled = 0, 'warn', 'info')",
+      serviceNameExpression: 'ad_format',
+      bodyExpression: "concat(ad_format, ' ', country, ' ', os_version)",
+      implicitColumnExpression: "concat(ad_format, ' ', country, ' ', os_version)",
+      defaultTableSelectExpression:
+        'event_time,ad_format,category,region,country,os_version,device_model,is_filled,is_impression,is_click,revenue',
+      eventAttributesExpression: attrExpr,
+      resourceAttributesExpression: "CAST(map(), 'Map(String, String)')",
+      highlightedRowAttributeExpressions: [], highlightedTraceAttributeExpressions: [],
+      materializedViews: [], querySettings: [], disabled: false,
+      updatedAt: now,
+    },
+    $setOnInsert: { createdAt: now, __v: 0 },
+  },
+  { upsert: true },
+);
+const liveSource = db.sources.findOne({ team: team._id, name: 'Ad Events (live)' });
+
+// The alert watches ANDROID 15 specifically failing to fill, not a raw volume
+// of unfilled requests. Unfilled traffic is normal — ~21% of all requests never
+// fill. What is abnormal is one segment's fill collapsing, which is the shape
+// of the planted incident and the thing worth waking an investigation for.
+db.savedsearches.updateOne(
+  { team: team._id, name: 'LIVE — Android 15 not filling' },
+  {
+    $set: {
+      team: team._id, name: 'LIVE — Android 15 not filling', source: liveSource._id,
+      select: 'event_time, os_version, device_model, country, ad_format, is_filled',
+      where: "os_version = 'Android 15' AND is_filled = 0",
+      whereLanguage: 'sql', orderBy: 'event_time DESC',
+      tags: ['rca', 'live'], filters: [], updatedAt: now,
+    },
+    $setOnInsert: { createdAt: now, __v: 0 },
+  },
+  { upsert: true },
+);
+
 // --------------------------------------------------------------- tidy the UI
 // The four OTEL sources belong to the warm-up stack and say nothing about this
 // project; a judge opening HyperDX should see ad data, not scaffolding.
@@ -195,23 +245,26 @@ db.webhooks.updateOne(
 );
 print(pat ? 'webhook: authenticated' : 'webhook: NO PAT — created inert (set GH_DISPATCH_PAT)');
 const hook = db.webhooks.findOne({ team: team._id, name: 'rca-dispatch' });
-const unfilled = db.savedsearches.findOne({ team: team._id, name: 'Unfilled ad requests' });
+const liveSearch = db.savedsearches.findOne({ team: team._id, name: 'LIVE — Android 15 not filling' });
 
-if (hook && unfilled) {
+if (hook && liveSearch) {
   db.alerts.updateOne(
-    { team: team._id, name: 'Fill failures above normal' },
+    { team: team._id, name: 'Android 15 fill collapse' },
     {
       $set: {
         team: team._id,
-        name: 'Fill failures above normal',
+        name: 'Android 15 fill collapse',
         source: 'saved_search',
-        savedSearch: unfilled._id,
-        threshold: 100000,
+        savedSearch: liveSearch._id,
+        // Calibrated against the live stream, not guessed: a normal 5-minute
+        // window shows ~50 Android 15 non-fills; the injected collapse shows
+        // ~250. 150 sits clear of both.
+        threshold: 150,
         thresholdType: 'above',
-        interval: '1h',
+        interval: '5m',
         channel: { type: 'webhook', webhookId: hook._id.toString() },
         state: 'OK',
-        message: 'Unfilled ad requests exceeded the hourly norm — run an RCA.',
+        message: 'Android 15 fill rate collapsed — run an RCA.',
         updatedAt: now,
       },
       $setOnInsert: { createdAt: now, __v: 0 },
@@ -220,6 +273,7 @@ if (hook && unfilled) {
   );
 }
 print('--- alerts ---');
+db.alerts.deleteMany({ team: team._id, name: 'Fill failures above normal' });
 db.alerts.find({ team: team._id }, { name: 1, interval: 1, threshold: 1, state: 1 }).forEach((d) => print(`  ${d.name}  every ${d.interval}  >${d.threshold}  [${d.state}]`));
 
 print('--- sources after provisioning ---');
