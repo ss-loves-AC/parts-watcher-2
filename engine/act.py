@@ -144,8 +144,12 @@ class Actor:
                     return s.get("id")
         return None
 
-    def pin_culprit(self, attribution) -> str | None:
-        """Save a view scoped to the segment that explained the movement."""
+    def pin_culprit(self, attribution, client=None) -> str | None:
+        """Save a view scoped to the segment that explained the movement.
+
+        `client` lets us remember which saved search we already created for a
+        given name, so re-running updates it instead of adding another copy.
+        """
         if not self.enabled:
             return None
         c = attribution.culprit
@@ -161,7 +165,7 @@ class Actor:
                 return None
             # Escape single quotes; segment values are data, not our strings.
             value = str(c["value"]).replace("'", "''")
-            r = self._call("clickstack_save_saved_search", {
+            args = {
                 "name": name,
                 "sourceId": sid,
                 "select": ("event_time, " + c["dimension"] +
@@ -170,8 +174,32 @@ class Actor:
                 "whereLanguage": "sql",
                 "orderBy": "event_time DESC",
                 "tags": ["rca", "auto", inc["metric"]],
-            })
+            }
+            # Update in place if this finding was already pinned.
+            prior = None
+            if client is not None:
+                rows = client.query(
+                    "SELECT search_id FROM {db:Identifier}.pinned_views "
+                    "WHERE name = {n:String} ORDER BY pinned_at DESC LIMIT 1",
+                    {"n": name})
+                prior = rows[0]["search_id"] if rows else None
+            if prior:
+                args["id"] = prior
+            r = self._call("clickstack_save_saved_search", args)
             if r and "result" in r and not r["result"].get("isError"):
+                if client is not None and not prior:
+                    new_id = None
+                    for item in r["result"].get("content", []):
+                        try:
+                            new_id = json.loads(item.get("text", "")).get("id")
+                        except Exception:
+                            pass
+                    if new_id:
+                        client.query(
+                            "INSERT INTO {db:Identifier}.pinned_views "
+                            "(name, search_id, pinned_at) VALUES "
+                            "({n:String}, {i:String}, now())",
+                            {"n": name, "i": new_id})
                 return name
             self.error = f"save_saved_search rejected: {str(r)[:160]}"
         except urllib.error.HTTPError as e:

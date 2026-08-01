@@ -121,7 +121,7 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
         # Only when a segment was actually implicated — pinning a view for a
         # global movement would be noise.
         a0 = _now()
-        pin = actor.pin_culprit(att)
+        pin = actor.pin_culprit(att, client)
         if pin:
             pinned.append(pin)
             tracer.span(tid, "6-act", a0, _now(), parent=inv,

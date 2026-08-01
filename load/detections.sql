@@ -41,3 +41,22 @@ PARTITION BY toYYYYMM(found_at)
 -- Ordered for the two real queries: "what is new" (found_at first, and it is
 -- also the alert's filter) and "have I seen this window" (the dedup check).
 ORDER BY (found_at, metric, window_start);
+
+
+-- Which HyperDX saved searches we have already created.
+--
+-- clickstack_save_saved_search creates a NEW record unless handed an id, and
+-- the MCP offers no way to look one up by name — clickstack_get_saved_search
+-- requires the id you are trying to find. So we keep the mapping ourselves.
+-- Without it, four runs left twelve copies of three pins.
+--
+-- ReplacingMergeTree on name: re-pinning the same finding overwrites rather
+-- than accumulating.
+CREATE TABLE IF NOT EXISTS {{DB}}.pinned_views
+(
+    name       String,
+    search_id  String,
+    pinned_at  DateTime
+)
+ENGINE = ReplacingMergeTree(pinned_at)
+ORDER BY name;
