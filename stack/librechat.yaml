@@ -1,0 +1,45 @@
+version: 1.2.8
+cache: true
+
+endpoints:
+  custom:
+    - name: "DeepSeek"
+      apiKey: "${DEEPSEEK_API_KEY}"
+      baseURL: "https://api.deepseek.com/v1"
+      models:
+        default: ["deepseek-chat"]
+        fetch: false
+      titleConvo: true
+      titleModel: "deepseek-chat"
+      modelDisplayLabel: "DeepSeek"
+
+mcpServers:
+  ClickStack:
+    type: streamable-http
+    url: http://hyperdx:8080/api/mcp
+    timeout: 60000
+    # Load-bearing. HyperDX answers unauthenticated requests with a bare 401.
+    # LibreChat probes for OAuth WITHOUT the configured headers, reads that 401
+    # as "OAuth required", ignores the static bearer, and loads ZERO tools.
+    # This flag skips the probe.
+    requiresOAuth: false
+    headers:
+      Authorization: "Bearer ${HYPERDX_MCP_API_KEY}"
+    # Full text in librechat-clickstack-instructions.md — kept there because it
+    # is long and worth reviewing on its own.
+    serverInstructions: |
+      Use the "ClickHouse Cloud" connection and the "Ad Events" source; get the
+      connectionId from clickstack_list_sources.
+
+      Metrics are ALWAYS sum/sum over rows in a group, never an average of
+      per-row ratios: fill rate = sum(is_filled)/count(), CTR =
+      sum(is_click)/sum(is_impression), eCPM = sum(revenue)/sum(is_impression)*1000.
+
+      Ranking segments by absolute change finds the BIGGEST segments, not the
+      responsible ones. Compare a segment's percentage change against the
+      POPULATION's over the same windows. If nothing stands clear, say "global,
+      no segment is responsible" rather than naming the largest. Then verify by
+      excluding the accused segment and recomputing.
+
+      Weekends run ~18% below weekdays: baseline against the same weekday a
+      week or more back, never against yesterday. Always LIMIT.

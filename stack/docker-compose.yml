@@ -1,0 +1,156 @@
+# The observability plane, reproducible from this repo alone.
+#
+# WHAT THIS IS NOT: none of these services are ours. HyperDX, Langfuse and
+# LibreChat are third-party OSS pulled from upstream images. What is ours is
+# the wiring — which services exist, how they reach ClickHouse Cloud, and the
+# provisioning in ../scripts that gives them our sources, saved searches,
+# alert and agent.
+#
+# WHY IT LOOKS THIN: the ad data does NOT live here. It lives in ClickHouse
+# Cloud, which is the hackathon's primary datastore and where every figure in
+# the diagnosis is computed. These containers only observe. HyperDX reads
+# Cloud over HTTPS; Langfuse keeps its own traces in its own ClickHouse
+# because that is how Langfuse works, not because we split our data.
+#
+#   cp .env.example .env     # fill in ClickHouse Cloud + a few secrets
+#   docker compose up -d
+#   ../scripts/provision-clickstack.js        # sources, saved searches, alert
+#   ../scripts/provision-librechat-agent.js   # the chat agent
+#
+# Memory: Langfuse alone wants ~2GB. On a small box bring up `hyperdx` first
+# and add Langfuse only if there is headroom.
+
+name: parts-watcher
+
+services:
+  # ---------------------------------------------------------------- ClickStack
+  # HyperDX is the ClickStack UI, and also serves the ClickStack MCP in-process
+  # at /api/mcp — which is what gives LibreChat its tools and what the pipeline
+  # calls to pin a finding. No separate MCP container exists or is needed.
+  hyperdx:
+    image: docker.hyperdx.io/hyperdx/hyperdx:2
+    depends_on: [mongodb]
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/hyperdx
+      # HyperDX stores its own config in Mongo; the ad data is read from
+      # ClickHouse Cloud via a connection provisioned by our script.
+      FRONTEND_URL: ${HYPERDX_URL:-http://localhost:8080}
+      HYPERDX_API_KEY: ${HYPERDX_API_KEY:?set in .env}
+    ports: ["8080:8080"]
+    restart: unless-stopped
+    mem_limit: 1g
+
+  mongodb:
+    image: mongo:7
+    volumes: [mongo-data:/data/db]
+    restart: unless-stopped
+    mem_limit: 512m
+
+  # ---------------------------------------------------------------- Langfuse
+  # Traces of every investigation: "no trace, no credit". Langfuse v3 needs
+  # Postgres, Redis, ClickHouse and S3-compatible storage of its own — that is
+  # its architecture, not a choice we made.
+  langfuse:
+    image: langfuse/langfuse:3
+    depends_on: [langfuse-db, redis, langfuse-clickhouse, minio]
+    environment:
+      DATABASE_URL: postgresql://langfuse:${POSTGRES_PASSWORD:?}@langfuse-db:5432/langfuse
+      CLICKHOUSE_URL: http://langfuse-clickhouse:8123
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      REDIS_CONNECTION_STRING: redis://redis:6379
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${MINIO_USER:-minio}
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_PASSWORD:?}
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      NEXTAUTH_URL: ${LANGFUSE_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:?}
+      SALT: ${LANGFUSE_SALT:?}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:?}
+    ports: ["3000:3000"]
+    restart: unless-stopped
+    mem_limit: 1g
+
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3
+    depends_on: [langfuse-db, redis, langfuse-clickhouse, minio]
+    environment:
+      DATABASE_URL: postgresql://langfuse:${POSTGRES_PASSWORD:?}@langfuse-db:5432/langfuse
+      CLICKHOUSE_URL: http://langfuse-clickhouse:8123
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      REDIS_CONNECTION_STRING: redis://redis:6379
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${MINIO_USER:-minio}
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_PASSWORD:?}
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      SALT: ${LANGFUSE_SALT:?}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:?}
+    restart: unless-stopped
+    mem_limit: 768m
+
+  langfuse-db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: langfuse
+    volumes: [langfuse-pg:/var/lib/postgresql/data]
+    restart: unless-stopped
+    mem_limit: 384m
+
+  # Langfuse's OWN ClickHouse, for its traces. Not the ad data — that is in
+  # ClickHouse Cloud. Two ClickHouses with entirely separate jobs.
+  langfuse-clickhouse:
+    image: clickhouse/clickhouse-server:26.1-alpine
+    environment:
+      CLICKHOUSE_SKIP_USER_SETUP: "1"
+    volumes: [langfuse-ch:/var/lib/clickhouse]
+    restart: unless-stopped
+    mem_limit: 1g
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    mem_limit: 256m
+
+  minio:
+    image: cgr.dev/chainguard/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:?}
+    volumes: [minio-data:/data]
+    restart: unless-stopped
+    mem_limit: 384m
+
+  # ---------------------------------------------------------------- LibreChat
+  # The conversational way in. Its tools are the ClickStack MCP served by
+  # HyperDX, so it queries the same ClickHouse Cloud data the pipeline does.
+  # librechat.yaml is bind-mounted and read ONLY at startup: after editing it,
+  # `docker compose up -d --force-recreate --no-deps librechat`, because a
+  # plain `up -d` will not recreate a service for a changed mounted file.
+  librechat:
+    image: ghcr.io/danny-avila/librechat:latest
+    depends_on: [mongodb, hyperdx]
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/LibreChat
+      HYPERDX_MCP_API_KEY: ${HYPERDX_MCP_API_KEY:?}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:?}
+      CREDS_KEY: ${LIBRECHAT_CREDS_KEY:?}
+      CREDS_IV: ${LIBRECHAT_CREDS_IV:?}
+      JWT_SECRET: ${LIBRECHAT_JWT_SECRET:?}
+      JWT_REFRESH_SECRET: ${LIBRECHAT_JWT_REFRESH_SECRET:?}
+    volumes:
+      - ./librechat.yaml:/app/librechat.yaml:ro
+    ports: ["3080:3080"]
+    restart: unless-stopped
+    mem_limit: 1g
+
+volumes:
+  mongo-data:
+  langfuse-pg:
+  langfuse-ch:
+  minio-data:
