@@ -4,7 +4,8 @@
 -- Attribution is the segment scan's job; keeping them apart is what lets the
 -- seasonal verdict discard weekend dips before any expensive drill-down runs.
 --
--- Params: grain_hours (1 = hourly, 24 = daily), weeks (history depth),
+-- Params: grain_hours (1 = hourly, 24 = daily), lags (history depth),
+--         period_hours (168 = same weekday, 24 = same hour-of-day),
 --         min_hist, threshold (wobbles), min_effect,
 --         excl_dates (days to keep OUT of the baseline history),
 --         as_of (pretend the data ends here — see engine/replay.py)
@@ -47,6 +48,20 @@
 -- ---------------------------------------------------------------------------
 
 WITH
+    -- Where the data actually starts and ends. The first and last periods are
+    -- almost always partial — a slice cut at 23:59:59 opens with one second of
+    -- traffic — and a partial period used as a baseline produces impossible
+    -- figures (measured: -124% on a 6-day slice, and +15,000,000% on a 14-day
+    -- one). Counting source rows catches this for daily buckets but NOT for
+    -- hourly, where "one source row" is trivially satisfied. So drop the edge
+    -- periods outright: one bucket at each end is a cheap price.
+    bounds AS
+    (
+        SELECT min(bucket) AS lo, max(bucket) AS hi
+        FROM {db:Identifier}.segment_cube
+        WHERE dim_name = '__total__' AND bucket < {as_of:DateTime}
+    ),
+
     -- The global series. One scan of the __total__ rows: with the cube ordered
     -- (dim_name, bucket, dim_value) this touches ~40K rows, not the whole cube.
     totals AS
@@ -77,6 +92,10 @@ WITH
         -- daily bucket held one second. A daily bucket needs 24 hourly rows,
         -- an hourly bucket needs 1; anything short is a boundary artifact.
         HAVING hours_present = {grain_hours:UInt16}
+           AND grain_bucket > toStartOfInterval(
+                   (SELECT lo FROM bounds), INTERVAL {grain_hours:UInt16} HOUR)
+           AND grain_bucket < toStartOfInterval(
+                   (SELECT hi FROM bounds), INTERVAL {grain_hours:UInt16} HOUR)
     ),
 
     -- Unpivot to (bucket, metric, value) so one baseline computation covers
@@ -109,14 +128,22 @@ WITH
             bucket,
             metric,
             value,
-            -- Hourly: same weekday+hour, plus the hour either side (3 samples
-            -- per week back). Daily: a day bucket has no adjacent-hour
-            -- concept, so just the weekly lags.
+            -- period_hours is the seasonal cycle we step back through: 168h
+            -- (same weekday, same hour) when there is a week of history to
+            -- draw on, 24h (same hour of day) when the slice is too short for
+            -- that. The second is weaker — it cannot tell a Sunday from a
+            -- Tuesday — which is exactly why the rung is reported alongside
+            -- the diagnosis rather than hidden.
+            --
+            -- Hourly also takes the hour either side, for 3 samples per step
+            -- back. A daily bucket has no adjacent-hour concept, so one each.
             arrayJoin(arrayFlatten(arrayMap(
                 k -> if({grain_hours:UInt16} = 1,
-                        [-(k * 168) - 1, -(k * 168), -(k * 168) + 1],
-                        [-(k * 168)]),
-                range(1, {weeks:UInt8} + 1)
+                        [-(k * {period_hours:UInt16}) - 1,
+                         -(k * {period_hours:UInt16}),
+                         -(k * {period_hours:UInt16}) + 1],
+                        [-(k * {period_hours:UInt16})]),
+                range(1, {lags:UInt8} + 1)
             ))) AS off_h
         FROM series
     ),
@@ -173,7 +200,12 @@ SELECT
     b.actual                                   AS actual,
     b.expected * s.typical_ratio               AS expected,
     b.n_hist                                   AS n_hist,
-    b.ratio - s.typical_ratio                  AS effect,
+    -- Relative change against the trend-adjusted expectation. NOT
+    -- (ratio - typical_ratio): that is a difference of two ratios, not a
+    -- percentage change, and it can report a drop worse than -100%, which is
+    -- impossible for a non-negative metric. Measured -125% on a short slice
+    -- before this was corrected.
+    b.ratio / s.typical_ratio - 1              AS effect,
     s.wobble                                   AS wobble,
     (b.ratio - s.typical_ratio) / s.wobble     AS wobbles
 FROM per_bucket AS b

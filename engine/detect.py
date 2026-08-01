@@ -43,7 +43,7 @@ GRAINS = (
 )
 
 
-def _min_hist(grain_hours: int, weeks: int, preferred: int) -> int:
+def _min_hist(grain_hours: int, lags: int, preferred: int) -> int:
     """How many historical samples to demand, given how many actually exist.
 
     A fixed requirement silently kills a whole grain on a short slice. Found by
@@ -54,7 +54,7 @@ def _min_hist(grain_hours: int, weeks: int, preferred: int) -> int:
 
     Hourly draws 3 samples per week back (the hour either side); daily draws 1.
     """
-    available = 3 * weeks if grain_hours == 1 else weeks
+    available = 3 * lags if grain_hours == 1 else lags
     return max(1, min(preferred, available))
 
 METRIC_LABELS = {
@@ -87,27 +87,35 @@ class Incident:
         return asdict(self)
 
 
-def choose_baseline(span_days: float) -> tuple[int, str]:
-    """The baseline ladder from docs/DESIGN.md.
+# The baseline ladder: (min span in days, lags, period_hours, name).
+# Ordered strongest first; the first rung the data can support wins.
+LADDER = (
+    (22, 3, 168, "rung1_same_weekday_3w"),
+    (15, 2, 168, "rung2_same_weekday_2w"),
+    (8,  1, 168, "rung3_same_weekday_1w"),
+    # Below a week there is no same-weekday history at all, so fall back to
+    # the same hour on preceding DAYS. Weaker by construction — it cannot
+    # distinguish a Sunday from a Tuesday, and weekends run ~18% below
+    # weekdays — but a weaker answer that says so beats no answer.
+    (4,  3,  24, "rung4_same_hour_3d"),
+    (2,  1,  24, "rung4_same_hour_1d"),
+)
 
-    A 'fresh slice of the same universe' may be far shorter than the 5 weeks we
-    developed against. Rather than returning nothing, the baseline degrades in
-    defined steps — and which step fired is reported, so a fallback is visible
-    in the diagnosis rather than hidden.
+
+def choose_baseline(span_days: float) -> tuple[int, int, str]:
+    """Pick the strongest baseline the data can actually support.
+
+    A 'fresh slice of the same universe' may be far shorter than the 5 weeks
+    we developed against. The baseline degrades in defined steps rather than
+    failing, and which step fired is carried into the diagnosis — a fallback
+    should be visible, not hidden.
     """
-    if span_days >= 22:
-        return 3, "rung1_same_weekday_3w"
-    if span_days >= 15:
-        return 2, "rung2_same_weekday_2w"
-    if span_days >= 8:
-        return 1, "rung2_same_weekday_1w"
-    # Rungs 3-4 (carry the seasonal shape from the reference dataset, then
-    # within-file same-hour-of-day) are specified in DESIGN.md but NOT yet
-    # implemented. Fail loudly rather than silently reporting "no anomalies",
-    # which would look identical to a clean dataset.
+    for min_span, lags, period, name in LADDER:
+        if span_days >= min_span:
+            return lags, period, name
     raise SystemExit(
-        f"data spans only {span_days:.1f} days: needs baseline ladder rung 3+, "
-        "which is not implemented yet"
+        f"data spans only {span_days:.1f} days — under two, no baseline of any "
+        "kind can be formed"
     )
 
 
@@ -125,14 +133,14 @@ def detect(client: Client, threshold: float = THRESHOLD,
             {"as_of": as_of},
         )
     )
-    weeks, rung = choose_baseline(span_days)
+    lags, period_hours, rung = choose_baseline(span_days)
 
     # Pass 1: find anomalous days with an uncleaned baseline.
     first: list[Incident] = []
     for grain_hours, grain_label, preferred, merge_gap in GRAINS:
         first += _detect_at_grain(
-            client, weeks, rung, threshold, grain_hours, grain_label,
-            _min_hist(grain_hours, weeks, preferred), merge_gap,
+            client, lags, period_hours, rung, threshold, grain_hours,
+            grain_label, _min_hist(grain_hours, lags, preferred), merge_gap,
             excl_dates=[], as_of=as_of,
         )
 
@@ -146,8 +154,8 @@ def detect(client: Client, threshold: float = THRESHOLD,
     incidents: list[Incident] = []
     for grain_hours, grain_label, preferred, merge_gap in GRAINS:
         incidents += _detect_at_grain(
-            client, weeks, rung, threshold, grain_hours, grain_label,
-            _min_hist(grain_hours, weeks, preferred), merge_gap,
+            client, lags, period_hours, rung, threshold, grain_hours,
+            grain_label, _min_hist(grain_hours, lags, preferred), merge_gap,
             excl_dates=excl, as_of=as_of,
         )
 
@@ -163,7 +171,7 @@ def _dates_between(start: str, end: str) -> list[str]:
 
 
 def _detect_at_grain(
-    client: Client, weeks: int, rung: str, threshold: float,
+    client: Client, lags: int, period_hours: int, rung: str, threshold: float,
     grain_hours: int, grain_label: str, min_hist: int, merge_gap: int,
     excl_dates: list[str], as_of: str,
 ) -> list[Incident]:
@@ -171,7 +179,8 @@ def _detect_at_grain(
         "detect.sql",
         {
             "grain_hours": grain_hours,
-            "weeks": weeks,
+            "lags": lags,
+            "period_hours": period_hours,
             "min_hist": min_hist,
             "threshold": threshold,
             "min_effect": MIN_EFFECT,

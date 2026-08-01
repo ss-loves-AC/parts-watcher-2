@@ -10,10 +10,18 @@
 #
 # When the real file arrives, the pipeline is executing for the second time.
 #
-# Usage: scripts/holdout-rehearsal.sh [days]     (default 14)
+# Usage: scripts/holdout-rehearsal.sh [days] [end]
+#   days  length of the synthetic slice        (default 14)
+#   end   last instant to include, YYYY-MM-DD  (default: end of the data)
+#
+# The end option matters: rehearsing only the tail of the dataset tests the
+# plumbing but not the detection, because the tail holds no planted anomalies.
+# Pointing it at a window that DOES contain one is what tests the baseline
+# ladder's weaker rungs.
 set -euo pipefail
 
 DAYS="${1:-14}"
+END="${2:-}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${CH_ENV:-$HOME/.config/clickhouse/clickathon.env}"
 CH="${CH_CLIENT:-$HOME/Documents/projects/click/bin/clickhouse}"
@@ -32,10 +40,15 @@ mkdir -p "$STAGE"
 
 # Cutoff is derived from the data, never hardcoded — the same discipline the
 # engine follows, and the thing most likely to break on a real unseen file.
-CUT=$(ch --query "SELECT toString(subtractDays(max(event_time), $DAYS)) FROM $SRC_DB.ad_events_raw")
-echo "    cutoff: $CUT"
+if [[ -n "$END" ]]; then
+  HI="$END 23:59:59"
+else
+  HI=$(ch --query "SELECT toString(max(event_time)) FROM $SRC_DB.ad_events_raw")
+fi
+CUT=$(ch --query "SELECT toString(subtractDays(toDateTime('$HI'), $DAYS))")
+echo "    window: $CUT  ->  $HI"
 
-ch --query "SELECT * FROM $SRC_DB.ad_events_raw WHERE event_time >= '$CUT' ORDER BY event_time FORMAT Parquet" \
+ch --query "SELECT * FROM $SRC_DB.ad_events_raw WHERE event_time >= '$CUT' AND event_time <= '$HI' ORDER BY event_time FORMAT Parquet" \
    > "$STAGE/ad_events.parquet"
 for t in apps advertisers geo_device; do
   ch --query "SELECT * FROM $SRC_DB.$t FORMAT CSVWithNames" > "$STAGE/$t.csv"

@@ -506,6 +506,24 @@ So the baseline degrades in defined steps rather than failing:
 | < 1 week | **Seasonal profile carried from the provided 5-week dataset** — day-of-week × hour-of-day shape, rescaled to the new slice's own level |
 | No usable history | Within-file: each hour against the median of the same hour-of-day across the slice |
 
+**Implemented** as `LADDER` in `engine/detect.py`: rungs 1–3 step back a week
+at a time (same weekday, same hour); rungs 4–5 step back a *day* at a time when
+there is under a week of history. Below two days no baseline of any kind can be
+formed and the run fails loudly rather than reporting a clean dataset.
+
+**Rung 4 has a failure mode worth stating plainly.** Stepping back by day
+cannot distinguish a Sunday from a Tuesday, and weekends run ~18% below
+weekdays. Worse, if the slice *opens* on an anomaly, that anomaly has no
+history of its own, so the two-pass cleaning cannot vet it — and it becomes the
+baseline for everything after. Rehearsed on a 6-day slice beginning at the
+Jun 21 collapse, the detector reports two normal days as a −56% drop.
+
+There is no fix available from inside the slice: you cannot verify history you
+do not have. The mitigations are honesty and preference —
+`baseline: rung4_same_hour_3d` travels with the diagnosis so a judge sees the
+weaker footing, and the ladder always prefers the strongest rung the data
+supports.
+
 The third rung is the interesting one and it's legitimate: the statement says
 the unseen data is *"a fresh slice of the same universe"*, so the seasonality
 shape is shared even when the incidents aren't. Carrying the *shape* while
