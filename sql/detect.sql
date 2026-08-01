@@ -194,6 +194,18 @@ WITH
         GROUP BY metric
     )
 
+-- ---------------------------------------------------------------------------
+-- A2/A4: contiguous flagged buckets are grouped into incidents HERE, not in
+-- Python. Classic gaps-and-islands: mark each flagged bucket that starts a new
+-- run, then take a running sum of those marks as the island id.
+--
+-- The two-pass baseline cleaning still runs as two invocations (the excluded
+-- days from pass 1 feed pass 2 as a parameter), because a single query cannot
+-- reference its own output as a filter without materialising it first — and
+-- materialising costs more than the second round trip.
+-- ---------------------------------------------------------------------------
+, flagged AS
+(
 SELECT
     b.bucket                                   AS bucket,
     b.metric                                   AS metric,
@@ -215,4 +227,50 @@ INNER JOIN scale AS s ON s.metric = b.metric
 -- statistically undeniable and still not worth an alert.
 WHERE (abs(wobbles) >= {threshold:Float64})
   AND (abs(effect)  >= {min_effect:Float64})
-ORDER BY metric ASC, bucket ASC
+),
+
+islands AS
+(
+    SELECT
+        *,
+        -- A new island starts when the previous flagged bucket for this metric
+        -- is further back than the merge gap (or there is no previous one).
+        sum(new_run) OVER (PARTITION BY metric ORDER BY bucket
+                           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS island
+    FROM
+    (
+        SELECT
+            *,
+            if(prev_bucket = toDateTime(0)
+               OR dateDiff('hour', prev_bucket, bucket) > {merge_gap:UInt16}, 1, 0) AS new_run
+        FROM
+        (
+            SELECT
+                *,
+                lagInFrame(bucket, 1, toDateTime(0)) OVER
+                    (PARTITION BY metric ORDER BY bucket
+                     ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS prev_bucket
+            FROM flagged
+        )
+    )
+)
+
+SELECT
+    metric,
+    min(bucket)                                             AS start,
+    max(bucket)                                             AS end,
+    addHours(max(bucket), {grain_hours:UInt16})             AS end_exclusive,
+    count()                                                 AS buckets_flagged,
+    -- Peak significance across the island, sign preserved.
+    arrayElement(
+        arraySort(x -> -abs(x), groupArray(wobbles)), 1)     AS peak_wobbles,
+    avg(expected)                                           AS mean_expected,
+    avg(actual)                                             AS mean_actual,
+    avg(effect)                                             AS mean_effect,
+    if(avg(actual) < avg(expected), 'down', 'up')            AS direction
+FROM islands
+GROUP BY metric, island
+-- A single flagged hour is noise; a single flagged DAY is already a day of
+-- evidence.
+HAVING (count() >= {min_buckets:UInt8})
+ORDER BY abs(peak_wobbles) DESC

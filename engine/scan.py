@@ -72,6 +72,7 @@ class Attribution:
     global_change: float
     culprit: dict | None
     residual: dict | None
+    counterfactual: dict | None = None
     ruled_out: list[dict] = field(default_factory=list)
     candidates: list[dict] = field(default_factory=list)
 
@@ -241,11 +242,39 @@ def scan(client: Client, inc: Incident, weeks: int = 3) -> Attribution:
             },
         )
 
+    # What did it cost? Only meaningful once a segment is actually implicated.
+    cf = None
+    try:
+        cf_rows = client.query_file("counterfactual.sql", {
+            "dim": top["dimension"], "value": top["value"],
+            "win_start": inc.start, "win_end": _window_end(inc), "weeks": weeks,
+        })
+        if cf_rows:
+            r = cf_rows[0]
+            impact = float(r["impact"])
+            cf = {
+                "requests_during": int(r["requests_during"]),
+                "revenue_actual": round(float(r["revenue_actual"]), 2),
+                "revenue_if_baseline_held": round(float(r["revenue_counterfactual"]), 2),
+                "impact": round(impact, 2),
+                "statement": (
+                    f"Had {DIM_LABELS.get(top['dimension'], top['dimension'])} "
+                    f"= {top['value']} held at its baseline revenue per request, "
+                    f"revenue over this window would have been "
+                    f"${abs(impact):,.2f} {'higher' if impact > 0 else 'lower'}."
+                ),
+            }
+    except Exception:
+        # Impact is a bonus, never a blocker: a diagnosis without a price tag
+        # is still a diagnosis.
+        cf = None
+
     return Attribution(
         incident=inc.as_dict(),
         verdict=("localized" if (explained and dominant)
                  else "partial" if explained
                  else "partial"),
+        counterfactual=cf,
         global_change=global_change,
         culprit={
             **top,

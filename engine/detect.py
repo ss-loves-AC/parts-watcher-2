@@ -186,67 +186,33 @@ def _detect_at_grain(
             "min_effect": MIN_EFFECT,
             "excl_dates": "[" + ",".join(f"'{d}'" for d in excl_dates) + "]",
             "as_of": as_of,
+            "merge_gap": merge_gap,
+            # A single flagged hour is noise; a single flagged day is already a
+            # day of evidence.
+            "min_buckets": MIN_HOURS if grain_hours == 1 else 1,
         },
     )
 
-    by_metric: dict[str, list[dict]] = {}
-    for r in rows:
-        by_metric.setdefault(r["metric"], []).append(r)
-
-    incidents: list[Incident] = []
-    for metric, hits in by_metric.items():
-        hits.sort(key=lambda r: r["bucket"])
-        run: list[dict] = []
-
-        def flush(run: list[dict]) -> None:
-            # A single daily bucket is already a day of evidence; a single hour
-            # is not.
-            if grain_hours == 1 and len(run) < MIN_HOURS:
-                return
-            peak = max(run, key=lambda r: abs(float(r["wobbles"])))
-            mean_expected = sum(float(r["expected"]) for r in run) / len(run)
-            mean_actual = sum(float(r["actual"]) for r in run) / len(run)
-            incidents.append(
-                Incident(
-                    metric=metric,
-                    metric_label=METRIC_LABELS.get(metric, metric),
-                    start=run[0]["bucket"],
-                    end=run[-1]["bucket"],
-                    # Exclusive end recorded here, where the grain is known.
-                    # Inferring it later from a merged grain label produced a
-                    # 47-hour window for a 24-hour incident and diluted the
-                    # signal until the culprit stopped standing out.
-                    end_exclusive=(
-                        datetime.fromisoformat(run[-1]["bucket"])
-                        + timedelta(hours=grain_hours)
-                    ).strftime("%Y-%m-%d %H:%M:%S"),
-                    hours_flagged=len(run),
-                    # Derived from the values actually reported, not from the
-                    # peak hour, so direction can never contradict the numbers
-                    # printed beside it.
-                    direction="down" if mean_actual < mean_expected else "up",
-                    peak_wobbles=round(float(peak["wobbles"]), 1),
-                    approx_expected=mean_expected,
-                    approx_actual=mean_actual,
-                    baseline_rung=rung,
-                    grain=grain_label,
-                    effect_pct=round(
-                        sum(float(r["effect"]) for r in run) / len(run) * 100, 2
-                    ),
-                )
-            )
-
-        for row in hits:
-            t = datetime.fromisoformat(row["bucket"])
-            if run and t - datetime.fromisoformat(run[-1]["bucket"]) > timedelta(
-                hours=merge_gap
-            ):
-                flush(run)
-                run = []
-            run.append(row)
-        flush(run)
-
-    return incidents
+    # The query now returns finished incidents — grouping contiguous buckets
+    # into islands is gaps-and-islands SQL, not a Python loop.
+    return [
+        Incident(
+            metric=r["metric"],
+            metric_label=METRIC_LABELS.get(r["metric"], r["metric"]),
+            start=r["start"],
+            end=r["end"],
+            end_exclusive=r["end_exclusive"],
+            hours_flagged=int(r["buckets_flagged"]),
+            direction=r["direction"],
+            peak_wobbles=round(float(r["peak_wobbles"]), 1),
+            approx_expected=float(r["mean_expected"]),
+            approx_actual=float(r["mean_actual"]),
+            baseline_rung=rung,
+            grain=grain_label,
+            effect_pct=round(float(r["mean_effect"]) * 100, 2),
+        )
+        for r in rows
+    ]
 
 
 def _dedupe(incidents: list[Incident]) -> list[Incident]:
