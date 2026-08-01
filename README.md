@@ -29,18 +29,26 @@ the SQL that produced every figure.
 
 **ClickStack / HyperDX — the list.** Dashboard *"RCA — what broke and why"*:
 every anomaly with its cause. **Set the time range to Last 24 hours** — it
-defaults to 15 minutes and findings are stamped when the detector ran.
+defaults to 15 minutes, and findings are stamped when the detector ran, not
+when the incident happened.
 → https://hyperdx.datagan.site
+
+```
+judge@clickathon.local  /  ClickathonJudge2026!
+```
+
+HyperDX's open-source edition is single-team by design — `/register` returns
+`teamAlreadyExists` once a team is created, and there is no anonymous mode. So
+a shared read account is the only way in that does not mean handing over the
+owner's login.
 
 **LibreChat — ask it questions.** Registration is open; sign up with any email,
 pick the *Ad Metrics Analyst* agent.
 → https://chat.datagan.site
 
-> HyperDX has no anonymous mode and refuses self-registration once a team
-> exists, so it needs an account we create. **If you are judging and want
-> access, open an issue on this repo and we will send an invite.** Nothing
-> essential is behind it: the diagnosis, every number, and the exact SQL are all
-> committed here, and the Langfuse traces are public.
+> Nothing essential sits behind any login: the diagnosis, every number, and
+> the exact SQL are committed to this repo, and the Langfuse traces are public.
+> The UIs show the same findings in a nicer form.
 
 ## What is in here
 
