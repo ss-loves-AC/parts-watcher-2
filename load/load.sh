@@ -6,6 +6,12 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${1:-$HOME/.config/clickhouse/clickathon.env}"
 
+# Database is a variable, not a constant. `rca` is shared with a teammate and
+# their test rows extended max(event_time) past the dataset end, which the
+# detector correctly read as a -103% collapse and which buried every real
+# movement. A pipeline must not read a table other people mutate.
+DB="${CH_DB:-pw}"
+
 # The problem package (587MB of Git LFS) and the ClickHouse client binary
 # (664MB) deliberately live OUTSIDE this repo. Override either with an env var
 # — DATA_DIR is what you repoint when the unseen incident dataset lands.
@@ -23,36 +29,36 @@ ch() { "$CH" client --host "$CH_HOST" --port 9440 --secure \
         --user "$CH_USER" --password "$CH_PASSWORD" "$@"; }
 
 echo "==> schema"
-ch --multiquery < "$ROOT/load/schema.sql"
-ch --multiquery < "$ROOT/load/cube.sql"
+sed "s/{{DB}}/$DB/g" "$ROOT/load/schema.sql" | ch --multiquery
+sed "s/{{DB}}/$DB/g" "$ROOT/load/cube.sql" | ch --multiquery
 
 echo "==> dimensions"
 for t in apps advertisers geo_device; do
-  ch --query "TRUNCATE TABLE rca.$t"
-  ch --query "INSERT INTO rca.$t FORMAT CSVWithNames" < "$DATA/$t.csv"
+  ch --query "TRUNCATE TABLE $DB.$t"
+  ch --query "INSERT INTO $DB.$t FORMAT CSVWithNames" < "$DATA/$t.csv"
   # select_sequential_consistency: this service has 2 replicas, and a plain
   # SELECT straight after an INSERT can land on one that hasn't caught up and
   # report 0. Without it the assertion below fails at random.
-  n=$(ch --query "SELECT count() FROM rca.$t SETTINGS select_sequential_consistency = 1")
+  n=$(ch --query "SELECT count() FROM $DB.$t SETTINGS select_sequential_consistency = 1")
   # A transient network error once emptied geo_device here and the run carried
   # on: `set -e` does not fire on a failure inside a command substitution, and
   # every downstream check still passed. Assert explicitly.
-  [[ "$n" -gt 0 ]] || { echo "FATAL: rca.$t loaded 0 rows" >&2; exit 1; }
+  [[ "$n" -gt 0 ]] || { echo "FATAL: $DB.$t loaded 0 rows" >&2; exit 1; }
   printf '    %-14s %s rows\n' "$t" "$n"
 done
 
 echo "==> ad_events_raw (9M rows, ~103MB parquet)"
-ch --query "TRUNCATE TABLE rca.ad_events_raw"
-ch --query "INSERT INTO rca.ad_events_raw FORMAT Parquet" \
+ch --query "TRUNCATE TABLE $DB.ad_events_raw"
+ch --query "INSERT INTO $DB.ad_events_raw FORMAT Parquet" \
    --max_insert_block_size 1000000 < "$DATA/ad_events.parquet"
 
 echo "==> ad_events (denormalized) + segment_cube via MV"
 # TRUNCATE on the source does NOT cascade to a materialized view's target table,
 # so the cube must be cleared explicitly or a re-run double-counts every metric.
-ch --query "TRUNCATE TABLE rca.ad_events"
-ch --query "TRUNCATE TABLE rca.segment_cube"
+ch --query "TRUNCATE TABLE $DB.ad_events"
+ch --query "TRUNCATE TABLE $DB.segment_cube"
 ch --query "
-INSERT INTO rca.ad_events
+INSERT INTO $DB.ad_events
 SELECT
     e.event_time,
     e.app_id,
@@ -82,10 +88,10 @@ SELECT
     -- bias worth ~$0.12 across the 9M rows. Round-tripping through the shortest
     -- decimal representation is exact. Source has at most 6 decimal places.
     CAST(toString(e.revenue) AS Decimal(18, 6)) AS revenue
-FROM rca.ad_events_raw AS e
-LEFT JOIN rca.apps        AS a ON a.app_id        = e.app_id
-LEFT JOIN rca.advertisers AS v ON v.advertiser_id = e.advertiser_id
-LEFT JOIN rca.geo_device  AS g ON g.geo_device_id = e.geo_device_id
+FROM $DB.ad_events_raw AS e
+LEFT JOIN $DB.apps        AS a ON a.app_id        = e.app_id
+LEFT JOIN $DB.advertisers AS v ON v.advertiser_id = e.advertiser_id
+LEFT JOIN $DB.geo_device  AS g ON g.geo_device_id = e.geo_device_id
 SETTINGS join_algorithm = 'parallel_hash'"
 
 echo "==> verify"
@@ -103,7 +109,7 @@ SELECT
     uniqExact(os_version)                         AS distinct_os,
     uniqExact(country)                            AS distinct_country,
     uniqExact(category)                           AS distinct_category
-FROM rca.ad_events
+FROM $DB.ad_events
 FORMAT Vertical
 SETTINGS select_sequential_consistency = 1"
 
@@ -117,7 +123,7 @@ SELECT throwIf(
 )
 FROM (
     SELECT dim_name, uniqExact(dim_value) AS vals
-    FROM rca.segment_cube
+    FROM $DB.segment_cube
     WHERE dim_name != '__total__'
     GROUP BY dim_name
     HAVING vals < 2
@@ -125,5 +131,5 @@ FROM (
 SETTINGS select_sequential_consistency = 1"
 ch --query "
 SELECT dim_name, uniqExact(dim_value) AS distinct_values, sum(requests) AS requests
-FROM rca.segment_cube GROUP BY dim_name ORDER BY dim_name
+FROM $DB.segment_cube GROUP BY dim_name ORDER BY dim_name
 SETTINGS select_sequential_consistency = 1"

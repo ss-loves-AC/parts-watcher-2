@@ -16,6 +16,9 @@ DEFAULT_ENV = Path.home() / ".config" / "clickhouse" / "clickathon.env"
 DEFAULT_CLIENT = Path.home() / "Documents/projects/click/bin/clickhouse"
 SQL_DIR = Path(__file__).resolve().parent.parent / "sql"
 
+# Own database, not the shared one. See load/load.sh for why.
+DB = os.environ.get("CH_DB", "pw")
+
 
 def _load_env(env_file: Path) -> dict[str, str]:
     if not env_file.exists():
@@ -52,7 +55,8 @@ class Client:
             "--format", "JSONEachRow",
             "--query", sql,
         ]
-        for key, value in (params or {}).items():
+        params = {"db": DB, **(params or {})}
+        for key, value in params.items():
             cmd += [f"--param_{key}", str(value)]
 
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)

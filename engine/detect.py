@@ -96,11 +96,18 @@ def choose_baseline(span_days: float) -> tuple[int, str]:
     )
 
 
-def detect(client: Client, threshold: float = THRESHOLD) -> list[Incident]:
+def detect(client: Client, threshold: float = THRESHOLD,
+           as_of: str | None = None) -> list[Incident]:
+    if as_of is None:
+        as_of = str(client.scalar(
+            "SELECT addHours(max(bucket), 1) FROM {db:Identifier}.segment_cube"
+        ))
     span_days = float(
         client.scalar(
             "SELECT dateDiff('hour', min(bucket), max(bucket)) / 24.0 "
-            "FROM rca.segment_cube WHERE dim_name = '__total__'"
+            "FROM {db:Identifier}.segment_cube "
+            "WHERE dim_name = '__total__' AND bucket < {as_of:DateTime}",
+            {"as_of": as_of},
         )
     )
     weeks, rung = choose_baseline(span_days)
@@ -110,7 +117,7 @@ def detect(client: Client, threshold: float = THRESHOLD) -> list[Incident]:
     for grain_hours, grain_label, min_hist, merge_gap in GRAINS:
         first += _detect_at_grain(
             client, weeks, rung, threshold, grain_hours, grain_label,
-            min_hist, merge_gap, excl_dates=[],
+            min_hist, merge_gap, excl_dates=[], as_of=as_of,
         )
 
     # Pass 2: re-detect with those days barred from serving as history, so a
@@ -124,7 +131,7 @@ def detect(client: Client, threshold: float = THRESHOLD) -> list[Incident]:
     for grain_hours, grain_label, min_hist, merge_gap in GRAINS:
         incidents += _detect_at_grain(
             client, weeks, rung, threshold, grain_hours, grain_label,
-            min_hist, merge_gap, excl_dates=excl,
+            min_hist, merge_gap, excl_dates=excl, as_of=as_of,
         )
 
     incidents = _dedupe(incidents)
@@ -141,7 +148,7 @@ def _dates_between(start: str, end: str) -> list[str]:
 def _detect_at_grain(
     client: Client, weeks: int, rung: str, threshold: float,
     grain_hours: int, grain_label: str, min_hist: int, merge_gap: int,
-    excl_dates: list[str],
+    excl_dates: list[str], as_of: str,
 ) -> list[Incident]:
     rows = client.query_file(
         "detect.sql",
@@ -152,6 +159,7 @@ def _detect_at_grain(
             "threshold": threshold,
             "min_effect": MIN_EFFECT,
             "excl_dates": "[" + ",".join(f"'{d}'" for d in excl_dates) + "]",
+            "as_of": as_of,
         },
     )
 

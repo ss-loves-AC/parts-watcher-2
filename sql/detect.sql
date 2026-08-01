@@ -6,7 +6,8 @@
 --
 -- Params: grain_hours (1 = hourly, 24 = daily), weeks (history depth),
 --         min_hist, threshold (wobbles), min_effect,
---         excl_dates (days to keep OUT of the baseline history)
+--         excl_dates (days to keep OUT of the baseline history),
+--         as_of (pretend the data ends here — see engine/replay.py)
 --
 -- No date literal appears anywhere in this file. Every window is relative to
 -- the data's own buckets, so the unseen slice works untouched.
@@ -57,8 +58,12 @@ WITH
             sum(impressions)        AS impressions,
             sum(clicks)             AS clicks,
             toFloat64(sum(revenue)) AS revenue
-        FROM rca.segment_cube
+        FROM {db:Identifier}.segment_cube
         WHERE dim_name = '__total__'
+          -- Replay cutoff. Everything downstream already derives its windows
+          -- from the data, so capping the input here is all it takes to make
+          -- the detector see the world as it looked at a past moment.
+          AND bucket < {as_of:DateTime}
         GROUP BY bucket
     ),
 

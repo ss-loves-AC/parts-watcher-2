@@ -95,7 +95,7 @@ WITH
                      AND (bucket <  {win_end:DateTime}   - toIntervalHour(k * 168)),
                     range(1, {weeks:UInt8} + 1)
                 ) AS in_base
-            FROM rca.segment_cube
+            FROM {db:Identifier}.segment_cube
         )
         WHERE in_inc OR in_base
         GROUP BY dim_name, dim_value

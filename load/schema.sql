@@ -1,11 +1,11 @@
 -- Click-a-thon 2026 · InMobi track — base schema
 -- Raw source-faithful tables + one denormalized fact table.
 
-CREATE DATABASE IF NOT EXISTS rca;
+CREATE DATABASE IF NOT EXISTS {{DB}};
 
 -- ---------- dimension tables (source-faithful) ----------
 
-CREATE TABLE IF NOT EXISTS rca.apps
+CREATE TABLE IF NOT EXISTS {{DB}}.apps
 (
     app_id         LowCardinality(String),
     category       LowCardinality(String),
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS rca.apps
 ENGINE = MergeTree
 ORDER BY app_id;
 
-CREATE TABLE IF NOT EXISTS rca.advertisers
+CREATE TABLE IF NOT EXISTS {{DB}}.advertisers
 (
     advertiser_id LowCardinality(String),
     vertical      LowCardinality(String),
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS rca.advertisers
 ENGINE = MergeTree
 ORDER BY advertiser_id;
 
-CREATE TABLE IF NOT EXISTS rca.geo_device
+CREATE TABLE IF NOT EXISTS {{DB}}.geo_device
 (
     geo_device_id LowCardinality(String),
     region        LowCardinality(String),
@@ -36,7 +36,7 @@ ORDER BY geo_device_id;
 
 -- ---------- raw fact (exactly as shipped) ----------
 
-CREATE TABLE IF NOT EXISTS rca.ad_events_raw
+CREATE TABLE IF NOT EXISTS {{DB}}.ad_events_raw
 (
     event_time    DateTime,
     app_id        LowCardinality(String),
@@ -57,7 +57,7 @@ ORDER BY event_time;
 -- revenue is Decimal so sums are bit-for-bit reproducible regardless of
 -- parallel merge order — the rubric penalises a single irreproducible figure.
 
-CREATE TABLE IF NOT EXISTS rca.ad_events
+CREATE TABLE IF NOT EXISTS {{DB}}.ad_events
 (
     event_time     DateTime,
     app_id         LowCardinality(String),

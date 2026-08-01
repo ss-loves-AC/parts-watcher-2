@@ -1,7 +1,7 @@
 # Architecture
 
 ```
-                            ClickHouse Cloud · ap-south-1 · database "rca"
+                            ClickHouse Cloud · ap-south-1 · database "pw"  (CH_DB)
   ┌──────────────────────────────────────────────────────────────────────────────────────┐
   │                                                                                      │
   │   ad_events.parquet      apps.csv    advertisers.csv    geo_device.csv               │
@@ -73,11 +73,12 @@
                          ╚══════════════╤══════════════╝
                                         │
                                         ▼
-                         ┌─────────────────────────────┐
-                         │  guard: every numeric token │
-                         │  in the prose must exist in │
-                         │  the evidence JSON          │
-                         └──────────────┬──────────────┘
+                         ╔═════════════════════════════╗
+                         ║  guard: every numeric token ║
+                         ║  in the prose must exist in ║
+                         ║  the evidence JSON. 2 fails ║
+                         ║  -> deterministic template  ║
+                         ╚══════════════╤══════════════╝
                                         ▼
                     out/  diagnosis.md · evidence.json · trace.txt · queries.sql
 
@@ -105,7 +106,13 @@
     ║   ║                              └───┘
     ╚═══╝
 
-    [1] built    [2] built    [3] built
-    [4] not built    [5] not built
-    observability plane: not built
+    [1] built    [2] built    [3] built    [4] built    [5] built
+
+    replay:  engine/replay.py — steps an as_of cutoff through the timeline so
+             the detector sees only the past. Measured time-to-detect: 6h on
+             the sharp incidents, 48h on the slow eCPM drift.
+
+    observability plane: ClickStack source registered (Ad Events -> ClickHouse
+             Cloud, provisioned by scripts/provision-clickstack.js on the
+             self-hosted runner). Langfuse spans: not wired.
 ```

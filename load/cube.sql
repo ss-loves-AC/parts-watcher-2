@@ -19,7 +19,7 @@
 -- exactly what the glossary demands ("never as an average of per-row or
 -- per-day ratios").
 
-CREATE TABLE IF NOT EXISTS rca.segment_cube
+CREATE TABLE IF NOT EXISTS {{DB}}.segment_cube
 (
     bucket      DateTime,                                    -- hour
     dim_name    LowCardinality(String),
@@ -42,12 +42,12 @@ PARTITION BY toYYYYMM(bucket)
 -- ORDER BY is immutable, so changing this later means recreating the table.
 ORDER BY (dim_name, bucket, dim_value);
 
--- Incremental MV: fires on every INSERT into rca.ad_events, so a streaming
+-- Incremental MV: fires on every INSERT into {{DB}}.ad_events, so a streaming
 -- feed stays current with no rebuild. AggregatingMergeTree merges the partial
 -- blocks in the background — queries must therefore always aggregate
 -- (sum(...) ... GROUP BY), never read a row and trust it to be final.
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS rca.segment_cube_mv TO rca.segment_cube AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS {{DB}}.segment_cube_mv TO {{DB}}.segment_cube AS
 SELECT
     toStartOfHour(event_time)     AS bucket,
     dim.1                         AS dim_name,
@@ -57,7 +57,7 @@ SELECT
     sum(is_impression)            AS impressions,
     sum(is_click)                 AS clicks,
     sum(revenue)                  AS revenue
-FROM rca.ad_events
+FROM {{DB}}.ad_events
 ARRAY JOIN
 [
     ('__total__',      'all'),

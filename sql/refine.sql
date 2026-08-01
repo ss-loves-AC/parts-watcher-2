@@ -116,7 +116,7 @@ FROM
                              arrayExists(k -> event_time >= {win_start:DateTime} - toIntervalHour(k * 168)
                                           AND event_time <  {win_end:DateTime}   - toIntervalHour(k * 168),
                                  range(1, {weeks:UInt8} + 1))) AS b
-                     FROM rca.ad_events
+                     FROM {db:Identifier}.ad_events
                      WHERE event_time >= {win_start:DateTime} - toIntervalHour({weeks:UInt8} * 168)
                        AND event_time <  {win_end:DateTime}
                  )) AS b_scale,
@@ -158,7 +158,7 @@ FROM
                          AND (event_time <  {win_end:DateTime}   - toIntervalHour(k * 168)),
                         range(1, {weeks:UInt8} + 1)
                     ) AS in_base
-                FROM rca.ad_events
+                FROM {db:Identifier}.ad_events
                 WHERE event_time >= {win_start:DateTime} - toIntervalHour({weeks:UInt8} * 168)
                   AND event_time <  {win_end:DateTime}
             )
