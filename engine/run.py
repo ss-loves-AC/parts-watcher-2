@@ -152,6 +152,11 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
         f"Langfuse traces NOT recorded: {tracer.error}\n"
         f"(pipeline output above is unaffected)\n"
     )
+    # One self-contained document. The four separate files are the machine
+    # artifacts; this is the thing a human opens. GitHub renders it inline, so
+    # a judge reads the whole submission without downloading anything.
+    _write_report(out_dir, all_ev, sections, trace_lines, tracer.url(tid), ok)
+
     (out_dir / "queries.sql").write_text(
         "-- Every figure in diagnosis.md comes from these queries.\n"
         "-- Parameters per incident are listed below; the SQL follows verbatim\n"
@@ -171,6 +176,111 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
     if not ok:
         print(f"  ! traces not recorded: {tracer.error}")
     return 0 if ok else 1
+
+
+def _verdict_badge(v: str) -> str:
+    return {"localized": "🎯 localized", "global": "🌍 global",
+            "partial": "◐ partial", "seasonal": "📅 seasonal"}.get(v, v)
+
+
+def _write_report(out_dir: Path, evidence: list[dict], sections: list[str],
+                  trace_lines: list[str], run_trace: str, traced: bool) -> None:
+    rows = []
+    for e in evidence:
+        c = e.get("culprit")
+        rows.append(
+            f"| {e['metric']} | {e['window']} | {e['change']} | "
+            f"{_verdict_badge(e['verdict'])} | "
+            f"{(c['dimension'] + ' = ' + c['value']) if c else '—'} |"
+        )
+
+    lines = [
+        "# Automated Root-Cause Analysis — report",
+        "",
+        f"Generated {_now()} · database `{DB}` · {len(evidence)} incident(s) found.",
+        "",
+        "Every figure below was computed in ClickHouse and handed to the narrator",
+        "as a finished string. The narrator has no database access and performs no",
+        "arithmetic, and every number it produced was machine-checked against the",
+        "evidence before this was written.",
+        "",
+        "## What moved",
+        "",
+        "| Metric | Window | Change | Verdict | Responsible |",
+        "|---|---|---|---|---|",
+        *rows,
+        "",
+        "> **localized** — one segment explains it.  ",
+        "> **global** — everything moved together; naming a segment would be wrong.  ",
+        "> **partial** — a segment explains some of it, not all.",
+        "",
+        "---",
+        "",
+        "## The diagnoses",
+        "",
+    ]
+
+    for ev, sec in zip(evidence, sections):
+        lines.append(sec)
+        c = ev.get("culprit")
+        lines.append("<details><summary>evidence</summary>\n")
+        lines.append(f"- **expected** {ev['expected']} → **actual** {ev['actual']} "
+                     f"({ev['change']})")
+        lines.append(f"- **how unusual** {ev['how_unusual']}")
+        lines.append(f"- **baseline** `{ev['baseline']}` · detected at `{ev['detected_at_grain']}`")
+        if c:
+            lines.append(f"- **culprit** {c['dimension']} = `{c['value']}` — "
+                         f"{c['its_value_before']} → {c['its_value_during']} "
+                         f"({c['its_change']}), {c['vs_everything_else']} vs everything else"
+                         + (f", {c['evidence_strength']}" if c.get("evidence_strength") else ""))
+        lines.append(f"- **proof** {ev['proof']}")
+        if ev.get("cost_of_the_incident"):
+            lines.append(f"- **cost** {ev['cost_of_the_incident']}")
+        if ev.get("ruled_out"):
+            lines.append("- **ruled out**")
+            for r in ev["ruled_out"][:5]:
+                lines.append(f"  - _{r['what']}_ — {r['why']}")
+        lines.append("\n</details>\n")
+
+    lines += [
+        "---",
+        "",
+        "## Traces",
+        "",
+        ("Every investigation was recorded. Open the run, or jump straight to an "
+         "incident:" if traced else
+         "**Traces were not recorded for this run** — see `trace.txt`."),
+        "",
+    ]
+    if traced:
+        lines.append(f"**Run:** {run_trace}")
+        lines.append("")
+        for tl in trace_lines:
+            lines.append(f"- {tl}")
+    lines += [
+        "",
+        "---",
+        "",
+        "## Reproducing this",
+        "",
+        "Every figure can be recomputed. `queries.sql` in this directory carries",
+        "the SQL and the per-incident parameters behind each one.",
+        "",
+        "```bash",
+        "./scripts/load-unseen.sh /path/to/data unseen   # load",
+        "CH_DB=unseen python3 -m engine.run --out out/   # detect, attribute, narrate",
+        "```",
+        "",
+        "| File | What it is |",
+        "|---|---|",
+        "| `REPORT.md` | this document |",
+        "| `diagnosis.md` | the prose alone |",
+        "| `evidence.json` | every computed number, machine-readable |",
+        "| `queries.sql` | the SQL behind every figure |",
+        "| `trace.txt` | Langfuse links |",
+        "",
+    ]
+    (out_dir / "REPORT.md").write_text("\n".join(lines))
 
 
 def main() -> None:
