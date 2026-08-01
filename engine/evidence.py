@@ -102,6 +102,8 @@ def build(att: Attribution) -> dict:
         ev["share_of_movement_explained"] = (
             f"{att.residual['explained_fraction'] * 100:.0f}%"
         )
+        if att.second_level:
+            ev["narrows_to"] = att.second_level["statement"]
         if att.counterfactual:
             ev["cost_of_the_incident"] = att.counterfactual["statement"]
     else:

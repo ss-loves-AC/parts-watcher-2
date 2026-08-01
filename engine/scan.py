@@ -73,6 +73,7 @@ class Attribution:
     culprit: dict | None
     residual: dict | None
     counterfactual: dict | None = None
+    second_level: dict | None = None
     ruled_out: list[dict] = field(default_factory=list)
     candidates: list[dict] = field(default_factory=list)
 
@@ -242,6 +243,43 @@ def scan(client: Client, inc: Incident, weeks: int = 3) -> Attribution:
             },
         )
 
+    # If one dimension did not explain the movement, the cause is probably an
+    # INTERSECTION the single-dimension cube cannot express. Drill inside the
+    # accused segment. Measured: "country = JP" explained 47%; inside JP, iOS
+    # 18.1 fell 49.8% (z = -65) while every other OS there was flat.
+    #
+    # Only when the residual says so. A two-dimension search is far more
+    # surface for a spurious result, and when one dimension already explains
+    # the movement there is nothing left to find.
+    second = None
+    if not explained:
+        try:
+            sub = client.query_file("drill2.sql", {
+                "metric": inc.metric, "dim": top["dimension"], "value": top["value"],
+                "win_start": inc.start, "win_end": _window_end(inc),
+                "weeks": weeks, "min_requests": 500,
+            })
+            best = next((r for r in sub if float(r["sub_change"]) < -0.15), None)
+            if best:
+                second = {
+                    "dimension": best["sub_dim"],
+                    "dimension_label": DIM_LABELS.get(best["sub_dim"], best["sub_dim"]),
+                    "value": best["sub_value"],
+                    "baseline": float(best["baseline_value"]),
+                    "incident": float(best["incident_value"]),
+                    "change": float(best["sub_change"]),
+                    "statement": (
+                        f"Within {DIM_LABELS.get(top['dimension'], top['dimension'])} "
+                        f"= {top['value']}, the movement concentrates in "
+                        f"{DIM_LABELS.get(best['sub_dim'], best['sub_dim'])} = "
+                        f"{best['sub_value']}: {float(best['baseline_value']):.4f} -> "
+                        f"{float(best['incident_value']):.4f} "
+                        f"({float(best['sub_change']) * 100:+.1f}%)."
+                    ),
+                }
+        except Exception:
+            second = None
+
     # What did it cost? Only meaningful once a segment is actually implicated.
     cf = None
     try:
@@ -275,6 +313,7 @@ def scan(client: Client, inc: Incident, weeks: int = 3) -> Attribution:
                  else "partial" if explained
                  else "partial"),
         counterfactual=cf,
+        second_level=second,
         global_change=global_change,
         culprit={
             **top,
@@ -311,6 +350,8 @@ def main() -> None:
                   f"({c['seg_change'] * 100:+.1f}%), "
                   f"{c['vs_global'] * 100:+.1f}% vs population")
             print(f"  proof   : {r.residual['proof']}")
+            if r.second_level:
+                print(f"  deeper  : {r.second_level['statement']}")
             print(f"            fully explained: {r.residual['fully_explained']}")
         else:
             print(f"  no segment responsible — population moved "
