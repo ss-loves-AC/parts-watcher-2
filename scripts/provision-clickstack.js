@@ -16,6 +16,9 @@
 // Mongo schema, so revisit on a HyperDX major upgrade.
 
 const host = process.env.CH_HOST;
+// Must match engine/ch.py's CH_DB. `rca` is the shared database a teammate
+// writes to; pointing HyperDX there showed rows past the dataset end.
+const database = process.env.CH_DB || 'pw';
 const user = process.env.CH_USER;
 const pass = process.env.CH_PASSWORD;
 
@@ -79,7 +82,7 @@ db.sources.updateOne(
       name: 'Ad Events',
       kind: 'log',
       connection: conn._id,
-      from: { databaseName: 'rca', tableName: 'ad_events' },
+      from: { databaseName: database, tableName: 'ad_events' },
       timestampValueExpression: 'event_time',
       displayedTimestampValueExpression: 'event_time',
       severityTextExpression: "if(is_filled = 0, 'warn', 'info')",
@@ -152,6 +155,61 @@ for (const s of searches) {
 }
 print('--- saved searches ---');
 db.savedsearches.find({ team: team._id }, { name: 1 }).forEach((d) => print(`  ${d.name}`));
+
+// --------------------------------------------------------------- tidy the UI
+// The four OTEL sources belong to the warm-up stack and say nothing about this
+// project; a judge opening HyperDX should see ad data, not scaffolding.
+// `disabled` hides without deleting, so this is reversible.
+// Langfuse Observations stays: it holds THIS pipeline's own LLM generations,
+// which is the self-observation loop rather than noise.
+const HIDE = ['Logs', 'Traces', 'Metrics', 'Sessions'];
+db.sources.updateMany({ team: team._id, name: { $in: HIDE } }, { $set: { disabled: true } });
+
+// ---------------------------------------------------------------- the alert
+// HyperDX is NOT on the critical path — detect.sql on a schedule is our alert
+// source (see docs/DESIGN.md). This alert exists so the "from alert to answer"
+// loop is visible and demonstrable in the UI, not because the pipeline depends
+// on it. The webhook URL is a placeholder until a dispatch PAT is wired.
+db.webhooks.updateOne(
+  { team: team._id, name: 'rca-dispatch' },
+  {
+    $set: {
+      team: team._id, name: 'rca-dispatch', service: 'generic',
+      url: process.env.ALERT_WEBHOOK_URL || 'https://example.invalid/rca-dispatch',
+      description: 'Fires an RCA investigation. Replace url with a GitHub repository_dispatch endpoint.',
+      updatedAt: now,
+    },
+    $setOnInsert: { createdAt: now, __v: 0 },
+  },
+  { upsert: true },
+);
+const hook = db.webhooks.findOne({ team: team._id, name: 'rca-dispatch' });
+const unfilled = db.savedsearches.findOne({ team: team._id, name: 'Unfilled ad requests' });
+
+if (hook && unfilled) {
+  db.alerts.updateOne(
+    { team: team._id, name: 'Fill failures above normal' },
+    {
+      $set: {
+        team: team._id,
+        name: 'Fill failures above normal',
+        source: 'saved_search',
+        savedSearch: unfilled._id,
+        threshold: 100000,
+        thresholdType: 'above',
+        interval: '1h',
+        channel: { type: 'webhook', webhookId: hook._id.toString() },
+        state: 'OK',
+        message: 'Unfilled ad requests exceeded the hourly norm — run an RCA.',
+        updatedAt: now,
+      },
+      $setOnInsert: { createdAt: now, __v: 0 },
+    },
+    { upsert: true },
+  );
+}
+print('--- alerts ---');
+db.alerts.find({ team: team._id }, { name: 1, interval: 1, threshold: 1, state: 1 }).forEach((d) => print(`  ${d.name}  every ${d.interval}  >${d.threshold}  [${d.state}]`));
 
 print('--- sources after provisioning ---');
 db.sources.find({ team: team._id }, { name: 1, 'from.databaseName': 1, 'from.tableName': 1 }).forEach((d) => print(`  ${d.name}  ->  ${d.from.databaseName}.${d.from.tableName}`));
