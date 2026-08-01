@@ -1,0 +1,260 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1399.4329166666666" height="2900.95" viewBox="0 0 1399.4329166666666 2900.95" style="--bg:#fffdf8;--fg:#171512;--line:#24211d;--accent:#1d4ed8;--muted:#5f5a52;--surface:#faf5ea;--border:#24211d;--font:EB Garamond;background:#fffdf8">
+<style>
+  text { font-family: var(--font, 'EB Garamond'), system-ui, sans-serif; }
+  svg {
+    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #171512;
+    --_text-sec:      #5f5a52;
+    --_text-muted:    #5f5a52;
+    --_text-faint:    #82807c;
+    --_line:          #24211d;
+    --_arrow:         #1d4ed8;
+    --_node-fill:     #faf5ea;
+    --_node-stroke:   #24211d;
+    --_group-fill:    #fffdf8;
+    --_group-hdr:     #f3f1ed;
+    --_inner-stroke:  #e3e1dc;
+    --_key-badge:     #e8e6e1;
+  }
+</style>
+<rect width="1399.4329166666666" height="2900.95" fill="#fffdf8" data-backdrop="page" />
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="5" refX="7" refY="2.5" orient="auto">
+    <polygon points="0 0, 8 2.5, 0 5" fill="#1d4ed8" stroke="#1d4ed8" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8" markerHeight="5" refX="1" refY="2.5" orient="auto">
+    <polygon points="8 0, 0 2.5, 8 5" fill="#1d4ed8" stroke="#1d4ed8" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-var282d2dfg29" markerWidth="8" markerHeight="5" refX="7" refY="2.5" orient="auto">
+    <polygon points="0 0, 8 2.5, 0 5" fill="#171512" stroke="#171512" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start-var282d2dfg29" markerWidth="8" markerHeight="5" refX="1" refY="2.5" orient="auto">
+    <polygon points="8 0, 0 2.5, 8 5" fill="#171512" stroke="#171512" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<g class="subgraph" data-id="CLOUD" data-region="subgraph" data-label="ClickHouse Cloud · ap-south-1 · the primary datastore" data-role="group">
+  <rect x="118.8729166666667" y="58" width="684.8916666666667" height="580.7" rx="7" ry="7" fill="#fffdf8" stroke="#171512" stroke-width="1.35" data-id="group-rect:CLOUD" data-role="group" />
+  <path d="M125.8729166666667,58 H796.7645833333333 A7,7 0 0 1 803.7645833333333,65 V86 H118.8729166666667 V65 A7,7 0 0 1 125.8729166666667,58 Z" fill="#f3f1ed" stroke="#171512" stroke-width="1.35" />
+  <text x="142.8729166666667" y="72" font-size="12" font-weight="700" letter-spacing="0.08" fill="#171512" dy="4.199999999999999" textLength="390.44" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">CLICKHOUSE CLOUD · AP-SOUTH-1 · THE PRIMARY DATASTORE</text>
+</g>
+<g class="subgraph" data-id="ENGINE" data-region="subgraph" data-label="The engine — all analysis in SQL" data-role="group">
+  <rect x="187.59291666666672" y="768.3000000000001" width="618.0145833333332" height="898.7" rx="7" ry="7" fill="#fffdf8" stroke="#171512" stroke-width="1.35" data-id="group-rect:ENGINE" data-role="group" />
+  <path d="M194.59291666666672,768.3000000000001 H798.6075 A7,7 0 0 1 805.6075,775.3000000000001 V796.3000000000001 H187.59291666666672 V775.3000000000001 A7,7 0 0 1 194.59291666666672,768.3000000000001 Z" fill="#f3f1ed" stroke="#171512" stroke-width="1.35" />
+  <text x="211.59291666666672" y="782.3000000000001" font-size="12" font-weight="700" letter-spacing="0.08" fill="#171512" dy="4.199999999999999" textLength="223.16" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">THE ENGINE — ALL ANALYSIS IN SQL</text>
+</g>
+<g class="subgraph" data-id="NARR" data-region="subgraph" data-label="Narration — the model computes nothing" data-role="group">
+  <rect x="119.8729166666667" y="1727" width="389.45833333333337" height="635.25" rx="7" ry="7" fill="#fffdf8" stroke="#171512" stroke-width="1.35" data-id="group-rect:NARR" data-role="group" />
+  <path d="M126.8729166666667,1727 H502.33125000000007 A7,7 0 0 1 509.33125000000007,1734 V1755 H119.8729166666667 V1734 A7,7 0 0 1 126.8729166666667,1727 Z" fill="#f3f1ed" stroke="#171512" stroke-width="1.35" />
+  <text x="143.8729166666667" y="1741" font-size="12" font-weight="700" letter-spacing="0.08" fill="#171512" dy="4.199999999999999" textLength="292.04" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">NARRATION — THE MODEL COMPUTES NOTHING</text>
+</g>
+<g class="subgraph" data-id="OBS" data-region="subgraph" data-label="Observability plane" data-role="group">
+  <rect x="404.5229166666667" y="2491.85" width="879.65" height="158.5" rx="7" ry="7" fill="#fffdf8" stroke="#171512" stroke-width="1.35" data-id="group-rect:OBS" data-role="group" />
+  <path d="M411.5229166666667,2491.85 H1277.1729166666667 A7,7 0 0 1 1284.1729166666667,2498.85 V2519.85 H404.5229166666667 V2498.85 A7,7 0 0 1 411.5229166666667,2491.85 Z" fill="#f3f1ed" stroke="#171512" stroke-width="1.35" />
+  <text x="428.5229166666667" y="2505.85" font-size="12" font-weight="700" letter-spacing="0.08" fill="#171512" dy="4.199999999999999" textLength="149.4" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">OBSERVABILITY PLANE</text>
+</g>
+<path class="edge" data-from="CUBE" data-to="D1" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="dim_name = &#39;__total__&#39;" d="M547.10625,616.7 L547.106,674.161 Q547.10625,680.7 553.646,680.7 L553.646,680.7 Q560.1847916666667,680.7 560.185,687.239 L560.185,742.3 Q560.1847916666667,750.3000000000001 568.185,750.3 L572.441,750.3 Q580.4408333333333,750.3000000000001 580.441,758.3 L580.4408333333333,818.3000000000001" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:CUBE-&gt;D1#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="CUBE to D1: dim_name = &#39;__total__&#39;" />
+<path class="edge" data-from="CUBE" data-to="D2" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="all other dims" d="M432.1229166666667,616.7 L432.123,678.114 Q432.1229166666667,680.7 434.709,680.7 L434.709,680.7 Q437.29583333333335,680.7 437.296,683.286 L437.296,742.3 Q437.29583333333335,750.3000000000001 429.296,750.3 L426.689,750.3 Q418.68875,750.3000000000001 418.689,758.3 L418.68875,1041.9" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:CUBE-&gt;D2#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="CUBE to D2: all other dims" />
+<path class="edge" data-from="FACT" data-to="D3" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="conditioning needs the fact table" d="M236.85625000000005,393.1 L236.856,672.7 Q236.85625000000005,680.7 244.856,680.7 L245.941,680.7 Q253.94083333333336,680.7 253.941,688.7 L253.941,742.3 Q253.94083333333336,750.3000000000001 261.941,750.3 L286.805,750.3 Q294.8054166666667,750.3000000000001 294.805,758.3 L294.805,1221.5 Q294.8054166666667,1229.5 302.805,1229.5 L319.176,1229.5 Q327.17625000000004,1229.5 327.176,1237.5 L327.17625000000004,1265.5" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:FACT-&gt;D3#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="FACT to D3: conditioning needs the fact table" />
+<path class="edge" data-from="D4" data-to="LLM" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" d="M384.9679166666667,1621 L384.968,1691 Q384.9679166666667,1699 376.968,1699 L361.806,1699 Q353.8062500000001,1699 353.806,1707 L353.8062500000001,1777" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:D4-&gt;LLM#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="D4 to LLM" />
+<path class="edge" data-from="GUARD" data-to="OUT" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="yes" d="M231.75625000000005,2131.2083333333335 L231.756,2180.802 Q231.75625000000005,2187.15 225.408,2187.15 L225.408,2187.15 Q219.0604166666667,2187.15 219.06,2193.498 L219.06,2499.75 Q219.0604166666667,2507.75 211.06,2507.75 L197.605,2507.75 Q189.60520833333334,2507.75 189.605,2515.75 L189.605,2574.663 Q189.60520833333334,2577.35 186.918,2577.35 L186.918,2577.35 Q184.23125000000005,2577.35 184.231,2580.037 L184.23125000000005,2589.35" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:GUARD-&gt;OUT#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="GUARD to OUT: yes" />
+<path class="edge" data-from="TMPL" data-to="OUT" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" d="M332.33541666666673,2334.75 L332.335,2569.35 Q332.33541666666673,2577.35 324.335,2577.35 L276.115,2577.35 Q270.11458333333337,2577.35 270.115,2583.35 L270.11458333333337,2589.35" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:TMPL-&gt;OUT#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="TMPL to OUT" />
+<path class="edge" data-from="D4" data-to="ACT" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" d="M384.9679166666667,1621 L384.968,1691 Q384.9679166666667,1699 392.968,1699 L998.643,1699 Q1006.6427083333334,1699 1006.643,1707 L1006.6427083333334,2287.25" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:D4-&gt;ACT#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="D4 to ACT" />
+<path class="edge" data-from="D1" data-to="LF" data-style="dotted" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="spans" d="M630.7325000000001,924.3000000000001 L630.733,930.3 Q630.7325000000001,936.3000000000001 636.733,936.3 L646.455,936.3 Q654.4554166666667,936.3000000000001 654.455,944.3 L654.455,2465.85 Q654.4554166666667,2473.85 646.455,2473.85 L603.49,2473.85 Q595.4895833333334,2473.85 595.49,2481.85 L595.4895833333334,2545.1" fill="none" stroke="#171512" stroke-width="1.45" stroke-dasharray="4 4" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:D1-&gt;LF#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="D1 to LF: spans" />
+<path class="edge" data-from="LLM" data-to="LF" data-style="dotted" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="generation" d="M397.64791666666673,1863.5 L397.648,1869.5 Q397.64791666666673,1875.5 403.648,1875.5 L436.61,1875.5 Q444.61041666666677,1875.5 444.61,1883.5 L444.61,2396.25 Q444.61041666666677,2404.25 452.61,2404.25 L504.006,2404.25 Q512.00625,2404.25 512.006,2412.25 L512.00625,2545.1" fill="none" stroke="#171512" stroke-width="1.45" stroke-dasharray="4 4" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:LLM-&gt;LF#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="LLM to LF: generation" />
+<path class="edge" data-from="ACT" data-to="HDX" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="ClickStack MCP" d="M1006.6427083333334,2373.75 L1006.643,2465.85 Q1006.6427083333334,2473.85 1014.643,2473.85 L1055.806,2473.85 Q1063.80625,2473.85 1063.806,2481.85 L1063.80625,2545.1" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:ACT-&gt;HDX#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="ACT to HDX: ClickStack MCP" />
+<path class="edge" data-from="D1" data-to="DET" data-style="thick" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="records a finding" d="M706.17,924.3000000000001 L706.17,2249.75 Q706.17,2257.75 714.17,2257.75 L954.939,2257.75 Q962.9385416666667,2257.75 962.939,2249.75 L962.939,48 Q962.9385416666667,40 954.939,40 L680.09,40 Q672.0895833333334,40 672.09,48 L672.0895833333334,115" fill="none" stroke="#171512" stroke-width="2.9" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:D1-&gt;DET#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="D1 to DET: records a finding" />
+<path class="edge" data-from="DET" data-to="HDX" data-style="thick" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="alert: anything found?" d="M672.0895833333334,196 L672.09,696.7 Q672.0895833333334,704.7 680.09,704.7 L1165.76,704.7 Q1173.7604166666667,704.7 1173.76,712.7 L1173.76,2467.965 Q1173.7604166666667,2473.85 1167.875,2473.85 L1167.875,2473.85 Q1161.9895833333335,2473.85 1161.99,2479.735 L1161.9895833333333,2545.1" fill="none" stroke="#171512" stroke-width="2.9" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:DET-&gt;HDX#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="DET to HDX: alert: anything found?" />
+<path class="edge" data-from="HDX" data-to="RUNNER" data-style="thick" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="webhook → repository_dispatch" d="M1112.8979166666666,2612.1 L1112.8979166666668,2773.95" fill="none" stroke="#171512" stroke-width="2.9" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:HDX-&gt;RUNNER#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="HDX to RUNNER: webhook → repository_dispatch" />
+<path class="edge" data-from="RUNNER" data-to="D1" data-style="thick" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="runs the investigation" d="M1112.8979166666668,2840.95 L1112.898,2846.95 Q1112.8979166666668,2852.95 1118.898,2852.95 L1286.173,2852.95 Q1294.1729166666667,2852.95 1294.173,2844.95 L1294.173,758.3 Q1294.1729166666667,750.3000000000001 1286.173,750.3 L689.024,750.3 Q681.0241666666667,750.3000000000001 681.024,758.3 L681.0241666666667,818.3000000000001" fill="none" stroke="#171512" stroke-width="2.9" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:RUNNER-&gt;D1#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="RUNNER to D1: runs the investigation" />
+<path class="edge" data-from="LC" data-to="CUBE" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="queries" d="M822.2979166666667,2631.6 L822.298,2660.35 Q822.2979166666667,2668.35 814.298,2668.35 L75.5,2668.35 Q67.5,2668.35 67.5,2660.35 L67.5,48 Q67.5,40 75.5,40 L424.123,40 Q432.1229166666667,40 432.123,48 L432.1229166666667,510.70000000000005" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:LC-&gt;CUBE#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="LC to CUBE: queries" />
+<path class="edge" data-from="RAW" data-to="FACT" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="LEFT JOIN dims" d="M282.4979166666667,182 L282.4979166666667,306.6" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:RAW-&gt;FACT#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="RAW to FACT: LEFT JOIN dims" />
+<path class="edge" data-from="FACT" data-to="CUBE" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="MATERIALIZED VIEW" d="M328.13958333333335,393.1 L328.13958333333335,510.70000000000005" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:FACT-&gt;CUBE#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="FACT to CUBE: MATERIALIZED VIEW" />
+<path class="edge" data-from="D1" data-to="D2" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" d="M531.5720833333334,924.3000000000001 L531.5720833333334,1041.9" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:D1-&gt;D2#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="D1 to D2" />
+<path class="edge" data-from="D2" data-to="D3" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" d="M384.9679166666667,1147.9 L384.9679166666667,1265.5" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:D2-&gt;D3#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="D2 to D3" />
+<path class="edge" data-from="D3" data-to="D3B" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" d="M384.9679166666667,1352 L384.9679166666667,1400" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:D3-&gt;D3B#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="D3 to D3B" />
+<path class="edge" data-from="D3B" data-to="D4" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" d="M384.9679166666667,1486.5 L384.9679166666667,1534.5" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:D3B-&gt;D4#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="D3B to D4" />
+<path class="edge" data-from="LLM" data-to="GUARD" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" d="M275.69791666666674,1863.5 L275.69791666666674,1911.5" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:LLM-&gt;GUARD#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="LLM to GUARD" />
+<path class="edge" data-from="GUARD" data-to="TMPL" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-marker-end="arrow" data-label="no, twice" d="M275.69791666666674,2175.15 L275.69791666666674,2287.25" fill="none" stroke="#171512" stroke-width="1.45" marker-end="url(#arrowhead-var282d2dfg29)" data-relationship="flowchart-edge" data-direction="forward" data-id="edge:GUARD-&gt;TMPL#0" data-role="edge" role="graphics-symbol" aria-roledescription="relation" aria-label="GUARD to TMPL: no, twice" />
+<g class="edge-label" data-from="CUBE" data-to="D1" data-label="dim_name = &#39;__total__&#39;">
+  <rect class="edge-label-halo" x="484.1847916666667" y="683.7" width="151.07999999999998" height="39.6" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="488.1847916666667" y="687.7" width="143.07999999999998" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="559.7247916666666" y="703.5" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="127.08" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">dim_name = &#39;__total__&#39;</text>
+</g>
+<g class="edge-label" data-from="CUBE" data-to="D2" data-label="all other dims">
+  <rect class="edge-label-halo" x="369.06875" y="876.3000000000002" width="99.24" height="39.6" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="373.06875" y="880.3000000000002" width="91.24" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="418.68875" y="896.1000000000001" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="75.24" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">all other dims</text>
+</g>
+<g class="edge-label" data-from="FACT" data-to="D3" data-label="conditioning needs the fact table">
+  <rect class="edge-label-halo" x="151.44083333333333" y="683.7" width="204.35999999999999" height="39.6" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="155.44083333333333" y="687.7" width="196.35999999999999" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="253.62083333333334" y="703.5" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="180.36" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">conditioning needs the fact table</text>
+</g>
+<g class="edge-label" data-from="GUARD" data-to="OUT" data-label="yes">
+  <rect class="edge-label-halo" x="165.60520833333334" y="2510.75" width="47.4" height="39.6" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="169.60520833333334" y="2514.75" width="39.4" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="189.30520833333333" y="2530.55" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="23.4" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">yes</text>
+</g>
+<g class="edge-label" data-from="D1" data-to="LF" data-label="spans">
+  <rect class="edge-label-halo" x="623.4554166666667" y="2407.25" width="61.8" height="39.6" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="627.4554166666667" y="2411.25" width="53.8" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="654.3554166666667" y="2427.05" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="37.8" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">spans</text>
+</g>
+<g class="edge-label" data-from="LLM" data-to="LF" data-label="generation">
+  <rect class="edge-label-halo" x="468.00625" y="2407.25" width="87.72" height="39.6" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="472.00625" y="2411.25" width="79.72" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="511.86625000000004" y="2427.05" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="63.72" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">generation</text>
+</g>
+<g class="edge-label" data-from="ACT" data-to="HDX" data-label="ClickStack MCP">
+  <rect class="edge-label-halo" x="947.6427083333334" y="2407.25" width="117.96000000000001" height="39.6" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="951.6427083333334" y="2411.25" width="109.96000000000001" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="1006.6227083333334" y="2427.05" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="93.96" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">ClickStack MCP</text>
+</g>
+<g class="edge-label" data-from="D1" data-to="DET" data-label="records a finding">
+  <rect class="edge-label-halo" x="899.6385416666667" y="705.9" width="125.88" height="43.2" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="905.4385416666667" y="711.7" width="114.28" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="962.5785416666666" y="727.5" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="98.28" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">records a finding</text>
+</g>
+<g class="edge-label" data-from="DET" data-to="HDX" data-label="alert: anything found?">
+  <rect class="edge-label-halo" x="1098.4604166666666" y="2201.3500000000004" width="150.36" height="43.2" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="1104.2604166666665" y="2207.15" width="138.76" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="1173.6404166666666" y="2222.9500000000003" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="122.76" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">alert: anything found?</text>
+</g>
+<g class="edge-label" data-from="HDX" data-to="RUNNER" data-label="webhook → repository_dispatch">
+  <rect class="edge-label-halo" x="1008.0979166666666" y="2693.55" width="209.4" height="43.2" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="1013.8979166666667" y="2699.35" width="197.8" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="1112.7979166666667" y="2715.15" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="181.8" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">webhook → repository_dispatch</text>
+</g>
+<g class="edge-label" data-from="RUNNER" data-to="D1" data-label="runs the investigation">
+  <rect class="edge-label-halo" x="1218.8729166666665" y="2405.4500000000003" width="150.36" height="43.2" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="1224.6729166666664" y="2411.25" width="138.76" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="1294.0529166666665" y="2427.05" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="122.76" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">runs the investigation</text>
+</g>
+<g class="edge-label" data-from="LC" data-to="CUBE" data-label="queries">
+  <rect class="edge-label-halo" x="32" y="2510.75" width="70.44" height="39.6" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="36" y="2514.75" width="62.44" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="67.22" y="2530.55" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="46.44" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">queries</text>
+</g>
+<g class="edge-label" data-from="RAW" data-to="FACT" data-label="LEFT JOIN dims">
+  <rect class="edge-label-halo" x="222.4979166666667" y="228" width="119.39999999999999" height="39.6" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="226.4979166666667" y="232" width="111.39999999999999" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="282.1979166666667" y="247.8" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="95.4" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">LEFT JOIN dims</text>
+</g>
+<g class="edge-label" data-from="FACT" data-to="CUBE" data-label="MATERIALIZED VIEW">
+  <rect class="edge-label-halo" x="251.51958333333334" y="432.1" width="153.23999999999998" height="39.6" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="255.51958333333334" y="436.1" width="145.23999999999998" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="328.13958333333335" y="451.90000000000003" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="129.24" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">MATERIALIZED VIEW</text>
+</g>
+<g class="edge-label" data-from="GUARD" data-to="TMPL" data-label="no, twice">
+  <rect class="edge-label-halo" x="238.67791666666676" y="2211.3999999999996" width="74.03999999999999" height="39.6" rx="4" ry="4" fill="#fffdf8" stroke="none" />
+  <rect x="242.67791666666676" y="2215.3999999999996" width="66.03999999999999" height="31.6" rx="2" ry="2" fill="#fffdf8" stroke="#e3e1dc" stroke-width="1" />
+  <text x="275.69791666666674" y="2231.2" text-anchor="middle" font-size="12" font-weight="600" fill="#171512" dy="4.199999999999999" textLength="50.04" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">no, twice</text>
+</g>
+<g class="node store" data-id="RAW" data-label="ad_events_raw
+9,000,000 rows · source-faithful" data-shape="rectangle" data-role="node">
+  <rect x="142.8729166666667" y="115" width="279.25" height="67" rx="7" ry="7" fill="#e8f0fe" stroke="#4a6fa5" stroke-width="1px" data-id="node-shape:RAW" data-role="node" />
+  <text x="282.4979166666667" y="148.5" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="282.4979166666667" dy="-4.5" textLength="113.85" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">ad_events_raw</tspan><tspan x="282.4979166666667" dy="19.5" textLength="227.25" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">9,000,000 rows · source-faithful</tspan></text>
+</g>
+<g class="node store" data-id="FACT" data-label="ad_events
+denormalized · LowCardinality
+no joins downstream" data-shape="rectangle" data-role="node">
+  <rect x="145.57291666666674" y="306.6" width="273.84999999999997" height="86.5" rx="7" ry="7" fill="#e8f0fe" stroke="#4a6fa5" stroke-width="1px" data-id="node-shape:FACT" data-role="node" />
+  <text x="282.4979166666667" y="349.85" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="282.4979166666667" dy="-14.25" textLength="77.85" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">ad_events</tspan><tspan x="282.4979166666667" dy="19.5" textLength="221.85" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">denormalized · LowCardinality</tspan><tspan x="282.4979166666667" dy="19.5" textLength="146.25" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">no joins downstream</tspan></text>
+</g>
+<g class="node store" data-id="CUBE" data-label="segment_cube · AggregatingMergeTree
+2.9M rows · 17 MiB
+ARRAY JOIN → 1 row per dim value
+plus a __total__ row" data-shape="rectangle" data-role="node">
+  <rect x="317.1395833333334" y="510.70000000000005" width="344.94999999999993" height="106" rx="7" ry="7" fill="#e8f0fe" stroke="#4a6fa5" stroke-width="1px" data-id="node-shape:CUBE" data-role="node" />
+  <text x="489.61458333333337" y="563.7" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="489.61458333333337" dy="-24" textLength="292.95" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">segment_cube · AggregatingMergeTree</tspan><tspan x="489.61458333333337" dy="19.5" textLength="133.65" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">2.9M rows · 17 MiB</tspan><tspan x="489.61458333333337" dy="19.5" textLength="238.95" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">ARRAY JOIN → 1 row per dim value</tspan><tspan x="489.61458333333337" dy="19.5" textLength="141.75" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">plus a __total__ row</tspan></text>
+</g>
+<g class="node store" data-id="DET" data-label="detections
+what the detector found" data-shape="cylinder" data-role="node">
+  <rect x="564.4145833333333" y="122" width="215.35000000000002" height="67" fill="#e8f0fe" stroke="none" data-id="node-shape:DET" data-role="node" />
+  <line x1="564.4145833333333" y1="122" x2="564.4145833333333" y2="189" stroke="#4a6fa5" stroke-width="1px" />
+  <line x1="779.7645833333333" y1="122" x2="779.7645833333333" y2="189" stroke="#4a6fa5" stroke-width="1px" />
+  <ellipse cx="672.0895833333334" cy="189" rx="107.67500000000001" ry="7" fill="#e8f0fe" stroke="#4a6fa5" stroke-width="1px" />
+  <ellipse cx="672.0895833333334" cy="122" rx="107.67500000000001" ry="7" fill="#e8f0fe" stroke="#4a6fa5" stroke-width="1px" />
+  <text x="672.0895833333334" y="155.5" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="672.0895833333334" dy="-4.5" textLength="76.05" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">detections</tspan><tspan x="672.0895833333334" dy="19.5" textLength="163.35" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">what the detector found</tspan></text>
+</g>
+<g class="node stage" data-id="D1" data-label="1 · DETECT
+median of same weekday, 3wk back
+robust z · hourly + daily
+40,960 rows · 4.9 ms" data-shape="rectangle" data-role="node">
+  <rect x="479.8575000000001" y="818.3000000000001" width="301.74999999999994" height="106" rx="7" ry="7" fill="#f6f6f4" stroke="#8a8a80" stroke-width="1px" data-id="node-shape:D1" data-role="node" />
+  <text x="630.7325000000001" y="871.3000000000001" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="630.7325000000001" dy="-24" textLength="85.05" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">1 · DETECT</tspan><tspan x="630.7325000000001" dy="19.5" textLength="249.75" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">median of same weekday, 3wk back</tspan><tspan x="630.7325000000001" dy="19.5" textLength="170.55" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">robust z · hourly + daily</tspan><tspan x="630.7325000000001" dy="19.5" textLength="148.05" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">40,960 rows · 4.9 ms</tspan></text>
+</g>
+<g class="node stage" data-id="D2" data-label="2 · SEGMENT SCAN
+all 12 dimensions in ONE query · 69 ms
+REAL? proportionsZTest
+DISTINCTIVE? change vs the population" data-shape="rectangle" data-role="node">
+  <rect x="305.8054166666667" y="1041.9" width="338.65" height="106" rx="7" ry="7" fill="#f6f6f4" stroke="#8a8a80" stroke-width="1px" data-id="node-shape:D2" data-role="node" />
+  <text x="475.1304166666667" y="1094.9" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="475.1304166666667" dy="-24" textLength="149.85" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">2 · SEGMENT SCAN</tspan><tspan x="475.1304166666667" dy="19.5" textLength="268.65" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">all 12 dimensions in ONE query · 69 ms</tspan><tspan x="475.1304166666667" dy="19.5" textLength="184.95" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">REAL? proportionsZTest</tspan><tspan x="475.1304166666667" dy="19.5" textLength="286.65" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">DISTINCTIVE? change vs the population</tspan></text>
+</g>
+<g class="node stage" data-id="D3" data-label="3 · REFINE — the arbiter
+RESPONSIBLE? remove each candidate,
+keep the one leaving least behind" data-shape="rectangle" data-role="node">
+  <rect x="211.59291666666672" y="1265.5" width="346.74999999999994" height="86.5" rx="7" ry="7" fill="#f6f6f4" stroke="#8a8a80" stroke-width="1px" data-id="node-shape:D3" data-role="node" />
+  <text x="384.9679166666667" y="1308.75" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="384.9679166666667" dy="-14.25" textLength="170.55" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">3 · REFINE — the arbiter</tspan><tspan x="384.9679166666667" dy="19.5" textLength="294.75" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">RESPONSIBLE? remove each candidate,</tspan><tspan x="384.9679166666667" dy="19.5" textLength="235.35" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">keep the one leaving least behind</tspan></text>
+</g>
+<g class="node stage" data-id="D3B" data-label="3b · SECOND LEVEL
+only when one dimension falls short
+finds JP × iOS 18.1, not just JP" data-shape="rectangle" data-role="node">
+  <rect x="234.09291666666672" y="1400" width="301.74999999999994" height="86.5" rx="7" ry="7" fill="#f6f6f4" stroke="#8a8a80" stroke-width="1px" data-id="node-shape:D3B" data-role="node" />
+  <text x="384.9679166666667" y="1443.25" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="384.9679166666667" dy="-14.25" textLength="156.15" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">3b · SECOND LEVEL</tspan><tspan x="384.9679166666667" dy="19.5" textLength="249.75" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">only when one dimension falls short</tspan><tspan x="384.9679166666667" dy="19.5" textLength="202.95" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">finds JP × iOS 18.1, not just JP</tspan></text>
+</g>
+<g class="node stage" data-id="D4" data-label="4 · EVIDENCE
+pre-formatted strings · ruled-out ledger
+verdict: localized / global / partial" data-shape="rectangle" data-role="node">
+  <rect x="220.1429166666667" y="1534.5" width="329.65" height="86.5" rx="7" ry="7" fill="#f6f6f4" stroke="#8a8a80" stroke-width="1px" data-id="node-shape:D4" data-role="node" />
+  <text x="384.9679166666667" y="1577.75" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="384.9679166666667" dy="-14.25" textLength="104.85" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">4 · EVIDENCE</tspan><tspan x="384.9679166666667" dy="19.5" textLength="277.65" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">pre-formatted strings · ruled-out ledger</tspan><tspan x="384.9679166666667" dy="19.5" textLength="231.75" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">verdict: localized / global / partial</tspan></text>
+</g>
+<g class="node stage" data-id="LLM" data-label="5 · LLM writes the paragraph
+receives the evidence JSON
+and nothing else" data-shape="rectangle" data-role="node">
+  <rect x="222.28125000000003" y="1777" width="263.05000000000007" height="86.5" rx="7" ry="7" fill="#f6f6f4" stroke="#8a8a80" stroke-width="1px" data-id="node-shape:LLM" data-role="node" />
+  <text x="353.8062500000001" y="1820.25" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="353.8062500000001" dy="-14.25" textLength="211.05" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">5 · LLM writes the paragraph</tspan><tspan x="353.8062500000001" dy="19.5" textLength="206.55" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">receives the evidence JSON</tspan><tspan x="353.8062500000001" dy="19.5" textLength="117.45" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">and nothing else</tspan></text>
+</g>
+<g class="node guard" data-id="GUARD" data-label="every number in the prose
+present in the evidence?" data-shape="diamond" data-role="node">
+  <polygon points="275.69791666666674,1911.5 407.5229166666668,2043.325 275.69791666666674,2175.15 143.87291666666673,2043.325" fill="#fff4e5" stroke="#b8860b" stroke-width="1px" data-id="node-shape:GUARD" data-role="node" />
+  <text x="275.69791666666674" y="2043.325" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="275.69791666666674" dy="-4.5" textLength="187.65" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">every number in the prose</tspan><tspan x="275.69791666666674" dy="19.5" textLength="175.95" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">present in the evidence?</tspan></text>
+</g>
+<g class="node guard" data-id="TMPL" data-label="deterministic template" data-shape="rectangle" data-role="node">
+  <rect x="230.0604166666667" y="2287.25" width="204.55000000000004" height="47.5" rx="7" ry="7" fill="#fff4e5" stroke="#b8860b" stroke-width="1px" data-id="node-shape:TMPL" data-role="node" />
+  <text x="332.33541666666673" y="2311" text-anchor="middle" font-size="15" font-weight="700" fill="#000000" dy="5.25" textLength="152.55" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">deterministic template</text>
+</g>
+<g class="node stage" data-id="ACT" data-label="6 · ACT
+pin the culprit as a
+HyperDX saved search" data-shape="rectangle" data-role="node">
+  <rect x="894.9177083333334" y="2287.25" width="223.45" height="86.5" rx="7" ry="7" fill="#f6f6f4" stroke="#8a8a80" stroke-width="1px" data-id="node-shape:ACT" data-role="node" />
+  <text x="1006.6427083333334" y="2330.5" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="1006.6427083333334" dy="-14.25" textLength="58.05" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">6 · ACT</tspan><tspan x="1006.6427083333334" dy="19.5" textLength="128.25" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">pin the culprit as a</tspan><tspan x="1006.6427083333334" dy="19.5" textLength="171.45" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">HyperDX saved search</tspan></text>
+</g>
+<g class="node stage" data-id="OUT" data-label="REPORT.md · evidence.json
+queries.sql · trace.txt" data-shape="rectangle" data-role="node">
+  <rect x="98.34791666666672" y="2589.35" width="257.65" height="67" rx="7" ry="7" fill="#f6f6f4" stroke="#8a8a80" stroke-width="1px" data-id="node-shape:OUT" data-role="node" />
+  <text x="227.1729166666667" y="2622.85" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="227.1729166666667" dy="-4.5" textLength="205.65" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">REPORT.md · evidence.json</tspan><tspan x="227.1729166666667" dy="19.5" textLength="155.25" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">queries.sql · trace.txt</tspan></text>
+</g>
+<g class="node obs" data-id="LF" data-label="Langfuse
+one trace per run
+investigations nested inside" data-shape="rectangle" data-role="node">
+  <rect x="428.5229166666667" y="2545.1" width="250.45" height="86.5" rx="7" ry="7" fill="#eef7ee" stroke="#5a8a5a" stroke-width="1px" data-id="node-shape:LF" data-role="node" />
+  <text x="553.7479166666667" y="2588.35" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="553.7479166666667" dy="-14.25" textLength="70.65" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">Langfuse</tspan><tspan x="553.7479166666667" dy="19.5" textLength="125.55" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">one trace per run</tspan><tspan x="553.7479166666667" dy="19.5" textLength="198.45" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">investigations nested inside</tspan></text>
+</g>
+<g class="node obs" data-id="HDX" data-label="HyperDX / ClickStack
+sources · saved searches · alert" data-shape="rectangle" data-role="node">
+  <rect x="965.6229166666666" y="2545.1" width="294.55" height="67" rx="7" ry="7" fill="#eef7ee" stroke="#5a8a5a" stroke-width="1px" data-id="node-shape:HDX" data-role="node" />
+  <text x="1112.8979166666666" y="2578.6" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="1112.8979166666666" dy="-4.5" textLength="156.15" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">HyperDX / ClickStack</tspan><tspan x="1112.8979166666666" dy="19.5" textLength="242.55" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">sources · saved searches · alert</tspan></text>
+</g>
+<g class="node obs" data-id="LC" data-label="LibreChat
+Ad Metrics Analyst agent
+tools = ClickStack MCP" data-shape="rectangle" data-role="node">
+  <rect x="706.9729166666666" y="2545.1" width="230.65" height="86.5" rx="7" ry="7" fill="#eef7ee" stroke="#5a8a5a" stroke-width="1px" data-id="node-shape:LC" data-role="node" />
+  <text x="822.2979166666667" y="2588.35" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="822.2979166666667" dy="-14.25" textLength="74.25" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">LibreChat</tspan><tspan x="822.2979166666667" dy="19.5" textLength="178.65" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">Ad Metrics Analyst agent</tspan><tspan x="822.2979166666667" dy="19.5" textLength="166.05" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">tools = ClickStack MCP</tspan></text>
+</g>
+<g class="node stage" data-id="RUNNER" data-label="GitHub Actions
+self-hosted VPC runner" data-shape="rectangle" data-role="node">
+  <rect x="1002.5229166666667" y="2773.95" width="220.75" height="67" rx="7" ry="7" fill="#f6f6f4" stroke="#8a8a80" stroke-width="1px" data-id="node-shape:RUNNER" data-role="node" />
+  <text x="1112.8979166666668" y="2807.45" text-anchor="middle" font-size="15" font-weight="700" fill="#000000"><tspan x="1112.8979166666668" dy="-4.5" textLength="105.75" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">GitHub Actions</tspan><tspan x="1112.8979166666668" dy="19.5" textLength="168.75" lengthAdjust="spacingAndGlyphs" data-font-metrics="deterministic-fit">self-hosted VPC runner</tspan></text>
+</g>
+</svg>

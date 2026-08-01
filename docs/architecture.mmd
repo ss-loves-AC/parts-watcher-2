@@ -1,0 +1,61 @@
+flowchart TB
+  subgraph CLOUD["ClickHouse Cloud · ap-south-1 · the primary datastore"]
+    RAW["ad_events_raw<br/>9,000,000 rows · source-faithful"]
+    FACT["ad_events<br/>denormalized · LowCardinality<br/>no joins downstream"]
+    CUBE["segment_cube · AggregatingMergeTree<br/>2.9M rows · 17 MiB<br/>ARRAY JOIN → 1 row per dim value<br/>plus a __total__ row"]
+    DET[("detections<br/>what the detector found")]
+    RAW -->|"LEFT JOIN dims"| FACT
+    FACT -->|"MATERIALIZED VIEW"| CUBE
+  end
+
+  subgraph ENGINE["The engine — all analysis in SQL"]
+    D1["1 · DETECT<br/>median of same weekday, 3wk back<br/>robust z · hourly + daily<br/>40,960 rows · 4.9 ms"]
+    D2["2 · SEGMENT SCAN<br/>all 12 dimensions in ONE query · 69 ms<br/>REAL? proportionsZTest<br/>DISTINCTIVE? change vs the population"]
+    D3["3 · REFINE — the arbiter<br/>RESPONSIBLE? remove each candidate,<br/>keep the one leaving least behind"]
+    D3B["3b · SECOND LEVEL<br/>only when one dimension falls short<br/>finds JP × iOS 18.1, not just JP"]
+    D4["4 · EVIDENCE<br/>pre-formatted strings · ruled-out ledger<br/>verdict: localized / global / partial"]
+    D1 --> D2 --> D3 --> D3B --> D4
+  end
+
+  subgraph NARR["Narration — the model computes nothing"]
+    LLM["5 · LLM writes the paragraph<br/>receives the evidence JSON<br/>and nothing else"]
+    GUARD{"every number in the prose<br/>present in the evidence?"}
+    TMPL["deterministic template"]
+    LLM --> GUARD
+    GUARD -->|"no, twice"| TMPL
+  end
+
+  ACT["6 · ACT<br/>pin the culprit as a<br/>HyperDX saved search"]
+  OUT["REPORT.md · evidence.json<br/>queries.sql · trace.txt"]
+
+  CUBE -->|"dim_name = '__total__'"| D1
+  CUBE -->|"all other dims"| D2
+  FACT -->|"conditioning needs the fact table"| D3
+  D4 --> LLM
+  GUARD -->|"yes"| OUT
+  TMPL --> OUT
+  D4 --> ACT
+
+  subgraph OBS["Observability plane"]
+    LF["Langfuse<br/>one trace per run<br/>investigations nested inside"]
+    HDX["HyperDX / ClickStack<br/>sources · saved searches · alert"]
+    LC["LibreChat<br/>Ad Metrics Analyst agent<br/>tools = ClickStack MCP"]
+  end
+
+  D1 -.->|"spans"| LF
+  LLM -.->|"generation"| LF
+  ACT -->|"ClickStack MCP"| HDX
+  D1 ==>|"records a finding"| DET
+  DET ==>|"alert: anything found?"| HDX
+  HDX ==>|"webhook → repository_dispatch"| RUNNER["GitHub Actions<br/>self-hosted VPC runner"]
+  RUNNER ==>|"runs the investigation"| D1
+  LC -->|"queries"| CUBE
+
+  classDef store fill:#e8f0fe,stroke:#4a6fa5,stroke-width:1px
+  classDef stage fill:#f6f6f4,stroke:#8a8a80,stroke-width:1px
+  classDef guard fill:#fff4e5,stroke:#b8860b,stroke-width:1px
+  classDef obs fill:#eef7ee,stroke:#5a8a5a,stroke-width:1px
+  class RAW,FACT,CUBE,DET store
+  class D1,D2,D3,D3B,D4,LLM,ACT,OUT,RUNNER stage
+  class GUARD,TMPL guard
+  class LF,HDX,LC obs

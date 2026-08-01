@@ -1,5 +1,10 @@
 # Architecture
 
+**Rendered diagram:** [`architecture.svg`](architecture.svg) — generated from
+[`architecture.mmd`](architecture.mmd) with `agentic-mermaid` and verified
+clean (`npx agentic-mermaid verify docs/architecture.mmd`). The ASCII below is
+kept because it reads in a terminal and in a diff.
+
 ```
                             ClickHouse Cloud · ap-south-1 · database "pw"  (CH_DB)
   ┌──────────────────────────────────────────────────────────────────────────────────────┐

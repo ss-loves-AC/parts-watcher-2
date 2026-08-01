@@ -1,0 +1,329 @@
+<title>From alert to answer — Click-a-thon 2026</title>
+<style>
+  /* ── tokens ─────────────────────────────────────────────────────────────
+     Committed single theme: this is a projector deck, not a document. A
+     print stylesheet flips it to ink-on-paper for PDF export.            */
+  :root{
+    --ground:#0f141b; --surface:#161d27; --edge:#26303d;
+    --ink:#e9edf3; --ink-dim:#9aa5b4; --ink-faint:#66707e;
+    --signal:#ffb454;      /* the alert colour — used for one thing at a time */
+    --cleared:#6cc08b;     /* ruled out / verified */
+    --critical:#f2686b;    /* the movement itself */
+    --display:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+    --body:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--ground);color:var(--ink);
+    font-family:var(--body);-webkit-font-smoothing:antialiased}
+
+  .deck{scroll-snap-type:y mandatory;overflow-y:auto;height:100vh}
+  .slide{scroll-snap-align:start;min-height:100vh;display:flex;flex-direction:column;
+    justify-content:center;padding:clamp(2rem,5vw,5.5rem);position:relative;
+    max-width:1200px;margin:0 auto;border-bottom:1px solid var(--edge)}
+
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--signal);margin-bottom:1.1rem}
+  h1{font-family:var(--display);font-size:clamp(2.4rem,6vw,4.4rem);line-height:1.05;
+    margin:0 0 1.2rem;text-wrap:balance;font-weight:400}
+  h2{font-family:var(--display);font-size:clamp(1.7rem,3.6vw,2.9rem);line-height:1.12;
+    margin:0 0 1.4rem;text-wrap:balance;font-weight:400}
+  p{font-size:clamp(1rem,1.35vw,1.2rem);line-height:1.6;color:var(--ink-dim);
+    max-width:62ch;margin:0 0 1rem}
+  strong{color:var(--ink);font-weight:600}
+  .lead{font-size:clamp(1.15rem,1.7vw,1.45rem);color:var(--ink);max-width:56ch}
+
+  .num{position:absolute;top:clamp(1.4rem,3vw,2.4rem);right:clamp(1.6rem,4vw,3.4rem);
+    font-family:var(--mono);font-size:.72rem;color:var(--ink-faint);letter-spacing:.08em}
+
+  .grid{display:grid;gap:clamp(1rem,2vw,1.8rem);margin-top:.6rem}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+
+  .card{background:var(--surface);border:1px solid var(--edge);border-radius:10px;
+    padding:clamp(1rem,1.8vw,1.5rem)}
+  .card h3{font-family:var(--body);font-size:.78rem;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--signal);margin:0 0 .7rem;font-weight:600}
+  .card p{font-size:.98rem;margin:0;color:var(--ink-dim)}
+
+  .stat{font-family:var(--mono);font-size:clamp(1.9rem,4.2vw,3rem);color:var(--ink);
+    line-height:1;font-variant-numeric:tabular-nums}
+  .stat-label{font-size:.85rem;color:var(--ink-faint);margin-top:.5rem;line-height:1.45}
+
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.86rem;
+    font-variant-numeric:tabular-nums;margin-top:.4rem}
+  th{text-align:left;font-weight:600;color:var(--ink-faint);font-size:.7rem;
+    letter-spacing:.11em;text-transform:uppercase;padding:.55rem .8rem;
+    border-bottom:1px solid var(--edge)}
+  td{padding:.6rem .8rem;border-bottom:1px solid rgba(38,48,61,.55);color:var(--ink-dim)}
+  td:first-child{color:var(--ink)}
+  .wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  .hit{color:var(--cleared)} .miss{color:var(--critical)} .sig{color:var(--signal)}
+
+  pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--surface);
+    border:1px solid var(--edge);border-left:2px solid var(--signal);border-radius:8px;
+    padding:1.1rem 1.3rem;overflow-x:auto;color:var(--ink-dim);margin:.4rem 0}
+  pre b{color:var(--ink);font-weight:600}
+
+  .quote{font-family:var(--display);font-size:clamp(1.3rem,2.5vw,2rem);line-height:1.35;
+    color:var(--ink);border-left:2px solid var(--signal);padding-left:1.4rem;
+    max-width:44ch;margin:.5rem 0 1.2rem;font-style:italic}
+
+  .rail{position:fixed;left:0;top:0;height:2px;background:var(--signal);z-index:10;
+    width:0;transition:width .15s linear}
+  .hint{position:fixed;bottom:1rem;right:1.4rem;font-family:var(--mono);font-size:.68rem;
+    color:var(--ink-faint);z-index:10}
+
+  @media print{
+    :root{--ground:#fff;--surface:#f7f7f5;--edge:#d5d8dd;--ink:#14181e;
+      --ink-dim:#3d454f;--ink-faint:#6b7480;--signal:#9a5b00;--cleared:#1f6b42;--critical:#a32226}
+    .rail,.hint{display:none}
+    .slide{min-height:auto;page-break-after:always;border-bottom:none;padding:2.2rem}
+    body,html{height:auto}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<div class="rail" id="rail"></div>
+<div class="hint">↓ scroll · ⌘P to print</div>
+<div class="deck" id="deck">
+
+<section class="slide"><span class="num">01</span>
+  <div class="eyebrow">Click-a-thon 2026 · InMobi track</div>
+  <h1>From alert to answer</h1>
+  <p class="lead">A metric moves. In under a minute the system names the segment
+  responsible, proves it, states what it ruled out — and shows its working.</p>
+  <p style="margin-top:1.6rem;font-family:var(--mono);font-size:.82rem;color:var(--ink-faint)">
+  ClickHouse Cloud · ClickStack · Langfuse · LibreChat</p>
+</section>
+
+<section class="slide"><span class="num">02</span>
+  <div class="eyebrow">The problem</div>
+  <h2>An alert says <em>that</em>. A human spends hours on <em>why</em>.</h2>
+  <p>Revenue across thousands of app, device, geo and advertiser combinations.
+  The data already holds the answer — the bottleneck is a person slicing
+  dashboards one dimension at a time.</p>
+  <div class="grid g3" style="margin-top:1.4rem">
+    <div><div class="stat sig">9M</div><div class="stat-label">ad events, 5 weeks</div></div>
+    <div><div class="stat sig">12</div><div class="stat-label">dimensions to search</div></div>
+    <div><div class="stat sig">~2,500</div><div class="stat-label">candidate segments</div></div>
+  </div>
+</section>
+
+<section class="slide"><span class="num">03</span>
+  <div class="eyebrow">The trap that defines the design</div>
+  <h2>On Jun 21 every segment fell 45% together</h2>
+  <div class="wrap"><table>
+    <tr><th>segment</th><th>change</th><th>ranked by absolute delta</th></tr>
+    <tr><td>ad_format = banner</td><td>−44%</td><td class="miss">#1 — largest segment</td></tr>
+    <tr><td>region = NAM</td><td>−44%</td><td class="miss">#2 — second largest</td></tr>
+    <tr><td>category = ecommerce</td><td>−44%</td><td class="miss">#3</td></tr>
+  </table></div>
+  <p style="margin-top:1.3rem">Rank by delta and you name <strong>banner</strong> with
+  total confidence. It is a fabrication — the movement was global. The rubric
+  punishes that harder than a miss.</p>
+  <p class="quote">A single fabricated figure costs more than a missed anomaly.</p>
+</section>
+
+<section class="slide"><span class="num">04</span>
+  <div class="eyebrow">Shape of the system</div>
+  <h2>ClickHouse computes. The model only writes the sentence.</h2>
+  <pre>ad_events_raw  9,000,000 rows, source-faithful
+      ↓  dimensions folded in at load — the drill-down never joins
+ad_events      denormalized, LowCardinality
+      ↓  MATERIALIZED VIEW
+segment_cube   <b>2.9M rows · 17 MiB · 12 dimensions</b>
+      ↓
+1 DETECT → 2 SCAN → 3 REFINE → 3b SECOND LEVEL → 4 EVIDENCE
+                                                     ↓
+                              5 NARRATE → guard → 6 ACT</pre>
+  <p>Every stage is SQL. The LLM appears once, at the end, and receives finished
+  strings.</p>
+</section>
+
+<section class="slide"><span class="num">05</span>
+  <div class="eyebrow">The cube</div>
+  <h2>One query scans all twelve dimensions</h2>
+  <p>A materialized view <span class="sig">ARRAY JOIN</span>s each event into one row
+  per <span class="sig">(dimension, value)</span>, plus a <span class="sig">__total__</span>
+  row so a segment and its baseline arrive in the same scan.</p>
+  <pre>('__total__','all'), ('ad_format', ad_format), ('category', category),
+('os_version', os_version), ('country', country), … <b>one line per dimension</b></pre>
+  <div class="grid g3" style="margin-top:1.2rem">
+    <div><div class="stat">69<span style="font-size:.4em"> ms</span></div><div class="stat-label">12-dimension sweep</div></div>
+    <div><div class="stat">17<span style="font-size:.4em"> MiB</span></div><div class="stat-label">smaller than the parquet it summarises</div></div>
+    <div><div class="stat">74×</div><div class="stat-label">fewer rows read after ordering by cardinality</div></div>
+  </div>
+</section>
+
+<section class="slide"><span class="num">06</span>
+  <div class="eyebrow">Detection</div>
+  <h2>Four questions, stated so anyone can check them</h2>
+  <div class="grid g2">
+    <div class="card"><h3>What should it have been?</h3><p>The middle value of the
+    same hour, same weekday, three weeks back. Weekends cancel by construction.</p></div>
+    <div class="card"><h3>How much does it normally wobble?</h3><p>Median absolute
+    deviation — an anomaly can't inflate the very yardstick used to detect it.</p></div>
+    <div class="card"><h3>Is this far off?</h3><p>Effect ÷ wobble. Past four, report it.
+    Run at hourly <em>and</em> daily grain.</p></div>
+    <div class="card"><h3>Who caused it?</h3><p>Not here — that is the scan's job,
+    and keeping them apart is what makes silence possible.</p></div>
+  </div>
+  <p style="margin-top:1.2rem">Daily grain is not optional: the eCPM incident is
+  <strong>−2.4% across four days</strong> — invisible per hour, obvious per day.</p>
+</section>
+
+<section class="slide"><span class="num">07</span>
+  <div class="eyebrow">Attribution</div>
+  <h2>Three questions. Only the third can name a cause.</h2>
+  <div class="grid g3">
+    <div class="card"><h3>Is it real?</h3><p>ClickHouse's native
+    <span class="sig">proportionsZTest</span>. Android 15 scores
+    <strong>z = −187</strong> against a next-best of −52.</p></div>
+    <div class="card"><h3>Is it distinctive?</h3><p>The segment's change measured
+    against the <em>population's</em> change — not its absolute delta.</p></div>
+    <div class="card"><h3>Is it responsible?</h3><p>Remove each candidate and
+    remeasure. Whichever leaves least behind is the cause.</p></div>
+  </div>
+  <p style="margin-top:1.3rem">A segment can beat the population handsomely and still
+  drive nothing. One app scored <strong>−33%</strong> on eCPM and explained
+  <strong>24%</strong> of the movement. Deviation says <em>unusual</em>; only the
+  residual says <em>responsible</em>.</p>
+</section>
+
+<section class="slide"><span class="num">08</span>
+  <div class="eyebrow">Trustworthiness</div>
+  <h2>The model cannot invent a number, because it has none</h2>
+  <p>It receives a JSON of <strong>finished strings</strong> — no database handle,
+  no raw rows, no arithmetic. A figure not in that JSON has nowhere to come from.</p>
+  <pre>"change": "<b>-4.4%</b>",        not  -0.04382
+"culprit": { "dimension": "<b>device OS version</b>",   not  os_version
+             "its_change": "<b>-44.8%</b>" }</pre>
+  <p>Then every numeric token in the prose is checked back against the evidence.
+  Two failures and a deterministic template ships instead.</p>
+  <p><strong>Not discouraged — structurally impossible, and verified.</strong>
+  Tested against a re-rounded <span class="miss">47.7%</span> and a computed
+  <span class="miss">106,359</span>; both caught.</p>
+</section>
+
+<section class="slide"><span class="num">09</span>
+  <div class="eyebrow">Results · provided dataset</div>
+  <h2>Four planted movements. Four found. No false positives.</h2>
+  <div class="wrap"><table>
+    <tr><th>metric</th><th>window</th><th>change</th><th>verdict</th><th>responsible</th></tr>
+    <tr><td>request volume</td><td>Jun 21</td><td>−45.8%</td><td class="sig">global</td><td>—</td></tr>
+    <tr><td>fill rate</td><td>Jun 23–25</td><td>−4.3%</td><td class="hit">localized</td><td>os_version = Android 15</td></tr>
+    <tr><td>revenue</td><td>Jun 21</td><td>−46.5%</td><td class="sig">global</td><td>—</td></tr>
+    <tr><td>eCPM</td><td>Jun 19–22</td><td>−2.4%</td><td class="hit">localized</td><td>category = finance</td></tr>
+    <tr><td>fill rate</td><td>Jun 29–30</td><td>−1.1%</td><td class="sig">partial</td><td>JP × iOS 18.1</td></tr>
+  </table></div>
+  <p style="margin-top:1.2rem">None of the ten weekends flagged. Full report in
+  <strong>20 seconds</strong>.</p>
+</section>
+
+<section class="slide"><span class="num">10</span>
+  <div class="eyebrow">The result we are proudest of</div>
+  <h2>Knowing when to say nothing</h2>
+  <p class="quote">Global — every segment moved with the population. No single
+  segment is responsible.</p>
+  <p>On Jun 21 the worst offender sits <strong>2.9%</strong> from the population
+  once normalised. Nothing stands clear, so nothing is named.</p>
+  <p><strong>Declining to localise is the hardest result to produce and the easiest
+  to get wrong.</strong> Most systems will name the biggest segment. Ours reports
+  two global movements and refuses both.</p>
+</section>
+
+<section class="slide"><span class="num">11</span>
+  <div class="eyebrow">When one dimension isn't the answer</div>
+  <h2>The cause is often an intersection</h2>
+  <div class="wrap"><table>
+    <tr><th>reported</th><th>fill rate</th><th>explains</th></tr>
+    <tr><td>country = JP</td><td>0.784 → 0.776</td><td class="miss">47%</td></tr>
+    <tr><td><strong>JP × iOS 18.1</strong></td><td>0.787 → <strong>0.394</strong></td><td class="hit">essentially all · z = −65</td></tr>
+    <tr><td>JP × every other OS</td><td>flat</td><td>—</td></tr>
+    <tr><td>iOS 18.1 outside JP</td><td>−6.6%</td><td>mild</td></tr>
+  </table></div>
+  <p style="margin-top:1.2rem">The system already knew it hadn't finished — that is
+  what <span class="sig">partial</span> means. It now drills inside the accused
+  segment, <strong>but only when the residual says to</strong>. Two-dimension search
+  is far more surface for a spurious result.</p>
+</section>
+
+<section class="slide"><span class="num">12</span>
+  <div class="eyebrow">Closing the loop</div>
+  <h2>The alert no longer needs to know the answer</h2>
+  <pre>detect.sql on a schedule  →  <b>detections</b> table
+                                 ↓
+HyperDX: "did the detector find anything?"  <b>threshold 0</b>
+                                 ↓
+webhook → GitHub → self-hosted runner → full investigation
+                                 ↓
+                    <b>6 ACT</b> — pin the culprit in HyperDX</pre>
+  <p>The old alert counted <em>Android 15 non-fills above 150</em> — it only worked
+  because we already knew the answer.</p>
+  <p>Proven segment-agnostic: we broke <strong>country = JP</strong>, which appears
+  nowhere in any configuration. Caught at −19.4 wobbles and correctly attributed.</p>
+</section>
+
+<section class="slide"><span class="num">13</span>
+  <div class="eyebrow">Would this survive contact with production?</div>
+  <h2>Built to be wrong loudly, not quietly</h2>
+  <div class="grid g2">
+    <div class="card"><h3>12 regression tests</h3><p>Recall, precision, the
+    crying-wolf case, the numeric guard. <strong>Proven to fail</strong> — run against
+    a holdout they produce nine readable failures, not a vacuous pass.</p></div>
+    <div class="card"><h3>Holdout rehearsal</h3><p>One command replays the entire
+    unseen-incident path. It found two silent bugs on its first run.</p></div>
+    <div class="card"><h3>Replay</h3><p>Steps a cutoff through the timeline so the
+    detector sees only the past. <strong>6-hour time-to-detect.</strong></p></div>
+    <div class="card"><h3>Degrades, doesn't crash</h3><p>A baseline ladder for short
+    slices; tracing and acting can fail without taking the diagnosis with them.</p></div>
+  </div>
+</section>
+
+<section class="slide"><span class="num">14</span>
+  <div class="eyebrow">The stack, and what it holds</div>
+  <h2>One ClickHouse does the work. The rest observe.</h2>
+  <div class="grid g2">
+    <div class="card"><h3>ClickHouse Cloud</h3><p>Every figure in every diagnosis is
+    computed here. MVs, AggregatingMergeTree, LowCardinality, window functions,
+    <span class="sig">proportionsZTest</span>.</p></div>
+    <div class="card"><h3>ClickStack / HyperDX</h3><p>Reads Cloud directly. Sources,
+    saved searches, and the alert that starts an investigation.</p></div>
+    <div class="card"><h3>Langfuse</h3><p>One trace per run, investigations nested
+    inside. Open it and follow what was checked, in what order.</p></div>
+    <div class="card"><h3>LibreChat</h3><p>An agent over the ClickStack MCP, told the
+    same attribution rule the engine enforces.</p></div>
+  </div>
+  <p style="margin-top:1.1rem"><code style="font-family:var(--mono);font-size:.86rem">stack/docker-compose.yml</code>
+  stands the whole plane up from upstream images — nine images, none built by us.</p>
+</section>
+
+<section class="slide"><span class="num">15</span>
+  <div class="eyebrow">Close</div>
+  <h1>Every number is checked.<br>Every claim is traced.<br>Silence is a valid answer.</h1>
+  <p style="margin-top:1.4rem;font-family:var(--mono);font-size:.85rem;color:var(--ink-faint)">
+  github.com/ss-loves-AC/parts-watcher-2<br>
+  reports/REPORT-provided-dataset.md · docs/UNSEEN_RUNBOOK.md</p>
+</section>
+
+</div>
+
+<script>
+  const deck = document.getElementById('deck'), rail = document.getElementById('rail');
+  const sync = () => {
+    const max = deck.scrollHeight - deck.clientHeight;
+    rail.style.width = (max > 0 ? (deck.scrollTop / max) * 100 : 0) + '%';
+  };
+  deck.addEventListener('scroll', sync, {passive:true}); sync();
+  const slides = [...document.querySelectorAll('.slide')];
+  addEventListener('keydown', e => {
+    if (!['ArrowDown','ArrowRight',' ','ArrowUp','ArrowLeft','PageDown','PageUp'].includes(e.key)) return;
+    e.preventDefault();
+    const fwd = ['ArrowDown','ArrowRight',' ','PageDown'].includes(e.key);
+    const here = slides.findIndex(s => s.getBoundingClientRect().top > -window.innerHeight/2);
+    const next = Math.max(0, Math.min(slides.length-1, (here < 0 ? slides.length-1 : here) + (fwd ? 1 : -1)));
+    slides[next].scrollIntoView({behavior:'smooth'});
+  });
+</script>
