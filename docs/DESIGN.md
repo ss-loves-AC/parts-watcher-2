@@ -3,8 +3,10 @@
 Click-a-thon 2026, InMobi track: *"From alert to answer."*
 
 Written T+0.5h (2026-08-01), updated T+2.5h with results from the built cube.
-See [PROBLEM_STATEMENT.md](PROBLEM_STATEMENT.md) for what we're solving and
-[DATA_LOADING.md](DATA_LOADING.md) for how the data gets into ClickHouse.
+See [PROBLEM_STATEMENT.md](PROBLEM_STATEMENT.md) for what we're solving,
+[DATA_LOADING.md](DATA_LOADING.md) for how the data gets into ClickHouse, and
+**[UNSEEN_RUNBOOK.md](UNSEEN_RUNBOOK.md) for exactly what to do when the sealed
+dataset lands.**
 
 ## What's actually in the data
 
