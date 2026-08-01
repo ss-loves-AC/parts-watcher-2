@@ -34,6 +34,11 @@ from pathlib import Path
 
 LLM_ENV = Path.home() / ".config" / "clickhouse" / "llm.env"
 DEFAULT_HOST = "http://127.0.0.1:3000"
+# Where a HUMAN opens the trace. Deliberately separate from the ingestion host:
+# we post over localhost (fast, and Cloudflare Access 403s the API from
+# outside), but a link to 127.0.0.1 is useless in someone else's browser — and
+# an unopenable trace fails "a judge should be able to open your traces".
+DEFAULT_PUBLIC_URL = "https://langfuse.datagan.site"
 
 
 def _now() -> str:
@@ -65,8 +70,11 @@ def _creds() -> tuple[str | None, str | None]:
 class Tracer:
     """Collects events and posts them in one batch at flush()."""
 
-    def __init__(self, host: str | None = None):
+    def __init__(self, host: str | None = None, public_url: str | None = None):
         self.host = (host or os.environ.get("LANGFUSE_HOST") or DEFAULT_HOST).rstrip("/")
+        self.public_url = (
+            public_url or os.environ.get("LANGFUSE_PUBLIC_URL") or DEFAULT_PUBLIC_URL
+        ).rstrip("/")
         self.pk, self.sk = _creds()
         self.enabled = bool(self.pk and self.sk)
         self.events: list[dict] = []
@@ -108,7 +116,8 @@ class Tracer:
         })
 
     def url(self, trace_id: str) -> str:
-        return f"{self.host}/trace/{trace_id}"
+        """The link a human clicks — public host, not the ingestion host."""
+        return f"{self.public_url}/trace/{trace_id}"
 
     # ----------------------------------------------------------------- guts
     def _add(self, type_: str, body: dict) -> None:
