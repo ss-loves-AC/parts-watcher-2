@@ -168,6 +168,10 @@ per `(dim_name, dim_value)` pair, plus a `__total__` row. A *single*
 parameterised query then scans every dimension — adding a dimension later means
 one more line in an array, not a new table and not a new query.
 
+Ordered `(dim_name, bucket, dim_value)`, low-to-high cardinality. See
+[CLICKHOUSE_REVIEW.md](CLICKHOUSE_REVIEW.md) — the obvious `(bucket, …)`
+ordering read 74x more rows on the detector query.
+
 ### Built and measured (T+2.5h)
 
 `rca.segment_cube`: **2,970,060 rows · 17.36 MiB · 840 hourly buckets · 12
@@ -244,11 +248,48 @@ about: slow, expensive, invents numbers).
 
 # OSS stack integration
 
-**Honest status: this section was generic until T+2.5h** — it named ClickStack /
-Langfuse / LibreChat without using any of the warm-up assets built for them, and
-never mentioned HyperDX at all. That was a real gap. The warm-up repo
-(`ch-hacker`) holds working, proven components that map onto this problem almost
-exactly, and rebuilding them under a 24h clock would be wasteful.
+## Where each tool is actually used
+
+**Status as of T+3h: none of them are wired up yet.** Everything below is
+planned. Saying so plainly matters more than a diagram that implies otherwise —
+the requirement is "meaningfully integrate", and a judge will check.
+
+```
+ HyperDX ───alert fires───► [1] DETECT ──► [2] DRILL DOWN ──► [3] REFINE
+ "fill rate is 14 wobbles                                          │
+  below normal"                                                    ▼
+                                                          [4] EVIDENCE JSON
+                                                                   │
+                                            Langfuse ◄──── [5] LLM NARRATES
+                                            (every step a span)    │
+                                                                   ▼
+                                                        investigations table
+                                                          (ClickHouse Cloud)
+                                                                   │
+                            LibreChat ◄──ClickStack MCP────────────┘
+                            "why did you rule out volume?"
+```
+
+| Tool | Exactly where it plugs in | What it buys | Status |
+|---|---|---|---|
+| **Langfuse** | Wraps stages 1–5. Each investigation is one trace; detect / scan / refine / narrate are spans carrying their inputs and outputs | **The scored deliverable.** "No trace, no credit" on the unseen incident. A judge replays what was checked, in what order, and why. Also captures LLM cost and latency | planned — **P1, mandatory** |
+| **HyperDX** | *Upstream* of stage 1. A saved alert on a metric threshold fires a webhook → `repository_dispatch` → the agent wakes and investigates | This is the **"alert"** in *"from alert to answer"*. Without it the system is a script someone runs; with it, the loop closes | planned — **P2, highest innovation-per-hour** |
+| **ClickStack** | *Around* the pipeline. OTEL spans from stages 1–5 land in ClickHouse; the `investigations` table is registered as a ClickStack source | Our own pipeline becomes queryable telemetry — the 24 semantic tools work over the investigation record, not just raw SQL | planned — P3 |
+| **LibreChat** | *Downstream* of stage 5. Chat UI with the ClickStack MCP attached, pointed at `investigations` | The "ask a follow-up" ending in the suggested demo: *"why did you rule out request volume?"* answered from the stored evidence, not re-derived | planned — P4, only if ahead |
+
+**The minimum bar is Langfuse alone** — the rules require *at least one* of
+ClickStack / Langfuse / LibreChat, and Langfuse is the one that doubles as a
+judging criterion. HyperDX is not on the required list at all; it earns its
+place by making the alert trigger real rather than simulated.
+
+Doing all four organically also targets the Spot Award.
+
+## Why this is cheaper than it looks
+
+The warm-up repo (`ch-hacker`) holds working, proven components that map onto
+this problem almost exactly, and rebuilding them under a 24h clock would be
+wasteful. Until T+2.5h this section named the tools generically without using
+any of those assets, and never mentioned HyperDX at all — that was a real gap.
 
 ## The mapping nobody should miss
 

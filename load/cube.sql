@@ -32,7 +32,15 @@ CREATE TABLE IF NOT EXISTS rca.segment_cube
 )
 ENGINE = AggregatingMergeTree
 PARTITION BY toYYYYMM(bucket)
-ORDER BY (bucket, dim_name, dim_value);
+-- Ordering is low-to-high cardinality: dim_name (12) < bucket (840) <
+-- dim_value (2561), per schema-pk-cardinality-order. It also puts the
+-- detector's equality filter (dim_name='__total__') on the key prefix, per
+-- schema-pk-prioritize-filters. Measured against the obvious (bucket,
+-- dim_name, dim_value) alternative on the two real query shapes:
+--   detector   3,018,832 -> 40,960 rows read  (74x less)
+--   full scan    606,208 -> 402,399 rows read (30.5ms -> 9.5ms)
+-- ORDER BY is immutable, so changing this later means recreating the table.
+ORDER BY (dim_name, bucket, dim_value);
 
 -- Incremental MV: fires on every INSERT into rca.ad_events, so a streaming
 -- feed stays current with no rebuild. AggregatingMergeTree merges the partial
