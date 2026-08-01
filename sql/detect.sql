@@ -52,7 +52,12 @@ WITH
     totals AS
     (
         SELECT
-            toStartOfInterval(bucket, INTERVAL {grain_hours:UInt16} HOUR) AS bucket,
+            -- NB: alias must NOT be `bucket`. Aliasing the truncated value
+            -- back to the source column name makes uniqExact(bucket) resolve
+            -- to the alias and return 1 for every group, which silently
+            -- deletes the entire daily grain.
+            toStartOfInterval(bucket, INTERVAL {grain_hours:UInt16} HOUR) AS grain_bucket,
+            uniqExact(bucket)       AS hours_present,
             sum(requests)           AS requests,
             sum(fills)              AS fills,
             sum(impressions)        AS impressions,
@@ -64,7 +69,14 @@ WITH
           -- from the data, so capping the input here is all it takes to make
           -- the detector see the world as it looked at a past moment.
           AND bucket < {as_of:DateTime}
-        GROUP BY bucket
+        GROUP BY grain_bucket
+        -- Only COMPLETE buckets. A slice that begins mid-day leaves a partial
+        -- first bucket holding a few seconds of traffic; used as a baseline it
+        -- makes the next week look like a 15,000,000% increase. Found by the
+        -- holdout rehearsal, where the export cut at 23:59:59 and the opening
+        -- daily bucket held one second. A daily bucket needs 24 hourly rows,
+        -- an hourly bucket needs 1; anything short is a boundary artifact.
+        HAVING hours_present = {grain_hours:UInt16}
     ),
 
     -- Unpivot to (bucket, metric, value) so one baseline computation covers
@@ -73,7 +85,7 @@ WITH
     series AS
     (
         SELECT
-            bucket,
+            grain_bucket AS bucket,
             m.1 AS metric,
             m.2 AS value
         FROM totals

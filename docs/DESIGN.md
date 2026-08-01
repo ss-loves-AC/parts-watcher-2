@@ -517,10 +517,39 @@ if we fall back, the judge sees that we did and why.
 
 ## 5. Rehearse before the drop, not during it
 
-At ~T+18h, run a **holdout rehearsal**: reload treating Jun 1–28 as history and
-Jun 29 – Jul 5 as an "unseen" slice, through the real command path, producing a
-real submission bundle. The point is that when the actual file lands, the
-pipeline is executing for the *second* time, not the first.
+`scripts/holdout-rehearsal.sh [days]` exports the last N days as a synthetic
+"unseen" package and puts it through the *real* command path — export →
+`DATA_DIR=… load.sh` → `engine.run` → bundle. When the actual file lands, the
+pipeline is executing for the second time, not the first.
+
+**It paid for itself immediately.** The first run found two bugs that would
+have cost us the highest-weighted criterion, both silent:
+
+1. **A whole grain died without an error.** At `weeks=1` the daily grain
+   offers exactly one historical sample but demanded two, so daily detection
+   returned nothing at all — and daily is what catches slow multi-day drifts.
+   No warning; the output was indistinguishable from a clean dataset.
+   `min_hist` now adapts to the history that actually exists.
+
+2. **Partial boundary buckets poisoned the baselines.** The export cut at
+   23:59:59, so the opening daily bucket held one second of traffic. Used as a
+   baseline it made the following week read as a **+15,000,000% increase**.
+   The detector now requires complete buckets — a daily bucket needs 24 hourly
+   rows, an hourly bucket needs one.
+
+   (Fixing that introduced a third bug worth recording: aliasing the truncated
+   timestamp back to `bucket` made `uniqExact(bucket)` resolve to the alias and
+   return 1 for every group, silently deleting the daily grain from the *full*
+   dataset too. Caught only because the rehearsal is run alongside a
+   known-good regression check.)
+
+**A known limit the rehearsal also exposed.** On a 14-day slice, the first week
+has no history, so anomalies inside it cannot be vetted and silently become the
+baseline for week two. The rehearsal reports eCPM as *up* 2.25% against a
+baseline that was itself depressed. This is inherent — you cannot verify
+history you do not have — so the diagnosis carries `baseline` (which ladder
+rung fired) and the deck should say plainly that a short slice yields weaker
+claims than a long one.
 
 ## 6. One command, one bundle
 

@@ -111,6 +111,8 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
         )
 
     ok = tracer.flush()
+    if not incidents:
+        tracer.error = "no incidents detected — nothing to trace"
 
     (out_dir / "evidence.json").write_text(json.dumps(all_ev, indent=2))
     (out_dir / "diagnosis.md").write_text(

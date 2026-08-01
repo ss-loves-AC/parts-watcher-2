@@ -37,10 +37,25 @@ MIN_EFFECT = 0.01
 # collapse is obvious hourly; a shallow multi-day drift is only obvious daily.
 # Neither grain alone finds all four planted movements.
 GRAINS = (
-    # grain_hours, label, min_hist, merge_gap_hours
+    # grain_hours, label, preferred_min_hist, merge_gap_hours
     (1,  "hourly", 3, 6),
     (24, "daily",  2, 48),
 )
+
+
+def _min_hist(grain_hours: int, weeks: int, preferred: int) -> int:
+    """How many historical samples to demand, given how many actually exist.
+
+    A fixed requirement silently kills a whole grain on a short slice. Found by
+    the holdout rehearsal: at weeks=1 the daily grain offers exactly ONE sample
+    but demanded two, so daily detection returned nothing at all — and daily is
+    what catches slow multi-day drifts. No error, no warning, just silence,
+    which is indistinguishable from a clean dataset.
+
+    Hourly draws 3 samples per week back (the hour either side); daily draws 1.
+    """
+    available = 3 * weeks if grain_hours == 1 else weeks
+    return max(1, min(preferred, available))
 
 METRIC_LABELS = {
     "requests": "request volume",
@@ -114,10 +129,11 @@ def detect(client: Client, threshold: float = THRESHOLD,
 
     # Pass 1: find anomalous days with an uncleaned baseline.
     first: list[Incident] = []
-    for grain_hours, grain_label, min_hist, merge_gap in GRAINS:
+    for grain_hours, grain_label, preferred, merge_gap in GRAINS:
         first += _detect_at_grain(
             client, weeks, rung, threshold, grain_hours, grain_label,
-            min_hist, merge_gap, excl_dates=[], as_of=as_of,
+            _min_hist(grain_hours, weeks, preferred), merge_gap,
+            excl_dates=[], as_of=as_of,
         )
 
     # Pass 2: re-detect with those days barred from serving as history, so a
@@ -128,10 +144,11 @@ def detect(client: Client, threshold: float = THRESHOLD,
     })
 
     incidents: list[Incident] = []
-    for grain_hours, grain_label, min_hist, merge_gap in GRAINS:
+    for grain_hours, grain_label, preferred, merge_gap in GRAINS:
         incidents += _detect_at_grain(
             client, weeks, rung, threshold, grain_hours, grain_label,
-            min_hist, merge_gap, excl_dates=excl, as_of=as_of,
+            _min_hist(grain_hours, weeks, preferred), merge_gap,
+            excl_dates=excl, as_of=as_of,
         )
 
     incidents = _dedupe(incidents)
