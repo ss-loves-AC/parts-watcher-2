@@ -1,9 +1,21 @@
 # Architecture
 
-**Rendered diagram:** [`architecture.svg`](architecture.svg) — generated from
-[`architecture.mmd`](architecture.mmd) with `agentic-mermaid` and verified
-clean (`npx agentic-mermaid verify docs/architecture.mmd`). The ASCII below is
-kept because it reads in a terminal and in a diff.
+**Rendered diagram:** [`architecture.svg`](architecture.svg) ·
+[`architecture.png`](architecture.png) — generated from
+[`architecture.mmd`](architecture.mmd) and verified clean:
+
+```bash
+npx --no-install agentic-mermaid verify docs/architecture.mmd --json
+npx --no-install agentic-mermaid render docs/architecture.mmd \
+    --format svg --style publication-figure --output docs/architecture.svg
+```
+
+`.mcp.json` also registers agentic-mermaid as an MCP server, so the diagram can
+be inspected and edited structurally rather than by patching text — `describe`
+reads it back as facts, `execute` applies typed mutations. Takes effect on the
+next session start.
+
+The ASCII below is kept because it reads in a terminal and in a diff.
 
 ```
                             ClickHouse Cloud · ap-south-1 · database "pw"  (CH_DB)
