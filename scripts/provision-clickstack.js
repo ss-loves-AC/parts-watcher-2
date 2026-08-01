@@ -105,5 +105,53 @@ db.sources.updateOne(
 // NB: keep chained calls on ONE line. mongosh reads stdin as a REPL, so a
 // line beginning with '.' after a complete statement is parsed as a keyword
 // and the chain silently fails with "Invalid REPL keyword".
+// ------------------------------------------------------------ saved searches
+//
+// Registering a source is invisible: HyperDX opens on an empty screen and a
+// judge has no idea the ad data is there. Saved searches are the difference
+// between "integrated" and "visibly integrated" — they put the incident one
+// click from the landing page.
+
+const adSource = db.sources.findOne({ team: team._id, name: 'Ad Events' });
+
+const searches = [
+  {
+    name: 'Unfilled ad requests',
+    where: "is_filled = 0",
+    select: 'event_time, ad_format, category, region, country, os_version, device_model',
+    tags: ['rca', 'fill'],
+  },
+  {
+    name: 'Android 15 — the fill collapse',
+    where: "os_version = 'Android 15'",
+    select: 'event_time, os_version, device_model, country, is_filled, is_impression, revenue',
+    tags: ['rca', 'incident'],
+  },
+  {
+    name: 'Finance category — the eCPM drop',
+    where: "category = 'finance'",
+    select: 'event_time, category, ad_format, region, is_impression, revenue',
+    tags: ['rca', 'incident'],
+  },
+];
+
+for (const s of searches) {
+  db.savedsearches.updateOne(
+    { team: team._id, name: s.name },
+    {
+      $set: {
+        team: team._id, name: s.name, source: adSource._id,
+        select: s.select, where: s.where, whereLanguage: 'sql',
+        orderBy: 'event_time DESC', tags: s.tags, filters: [],
+        updatedAt: now,
+      },
+      $setOnInsert: { createdAt: now, __v: 0 },
+    },
+    { upsert: true },
+  );
+}
+print('--- saved searches ---');
+db.savedsearches.find({ team: team._id }, { name: 1 }).forEach((d) => print(`  ${d.name}`));
+
 print('--- sources after provisioning ---');
 db.sources.find({ team: team._id }, { name: 1, 'from.databaseName': 1, 'from.tableName': 1 }).forEach((d) => print(`  ${d.name}  ->  ${d.from.databaseName}.${d.from.tableName}`));
