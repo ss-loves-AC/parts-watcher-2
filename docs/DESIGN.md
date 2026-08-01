@@ -16,7 +16,7 @@ Jun 1 – Jul 5 2026.
 |---|---|---|
 | Jun 23–25 | fill rate 0.785 → 0.750 | **`os_version = Android 15`: 0.785 → 0.433.** Clean, single-dimension, large |
 | Jun 28–30 | fill rate 0.785 → 0.776 | Milder, same shape — likely a second planted fill incident |
-| Jun 19–22 | eCPM 2.476 → 2.415 | **`ad_format = interstitial`: −7.1%** vs −2.5% global. Localized but weak |
+| Jun 19–22 | eCPM 2.476 → 2.415 | **`category = finance`: −34.5%** (2.463 → 1.613). Confirmed by the residual test |
 | Jun 21 (Sun) | requests 225K → 126K (−44%) | **Not localized at all** |
 
 ### Two traps that drive the design
@@ -30,6 +30,15 @@ segment responsible."*
 
 **2. Weekends are −18% on requests**, and the glossary warns that at least one
 planted movement is pure seasonality, to be ruled out rather than alarmed on.
+
+> **Correction (T+4h).** This table first recorded the eCPM culprit as
+> `ad_format = interstitial` (−7.1%). That was wrong. The hand exploration
+> behind it scanned `ad_format`, `region`, `vertical` and `campaign_type` and
+> never tested `category` — so the real cause was never a candidate.
+> Interstitial was a shadow of it. The built engine found `category = finance`
+> at −34.5% and proved it: removing finance leaves +0.05% of a −2.38%
+> movement. A useful reminder that the reason to automate this is that manual
+> drill-down silently skips dimensions.
 
 ---
 

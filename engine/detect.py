@@ -58,6 +58,7 @@ class Incident:
     metric_label: str
     start: str
     end: str
+    end_exclusive: str
     hours_flagged: int
     direction: str
     peak_wobbles: float
@@ -177,6 +178,14 @@ def _detect_at_grain(
                     metric_label=METRIC_LABELS.get(metric, metric),
                     start=run[0]["bucket"],
                     end=run[-1]["bucket"],
+                    # Exclusive end recorded here, where the grain is known.
+                    # Inferring it later from a merged grain label produced a
+                    # 47-hour window for a 24-hour incident and diluted the
+                    # signal until the culprit stopped standing out.
+                    end_exclusive=(
+                        datetime.fromisoformat(run[-1]["bucket"])
+                        + timedelta(hours=grain_hours)
+                    ).strftime("%Y-%m-%d %H:%M:%S"),
                     hours_flagged=len(run),
                     # Derived from the values actually reported, not from the
                     # peak hour, so direction can never contradict the numbers
@@ -225,6 +234,7 @@ def _dedupe(incidents: list[Incident]) -> list[Incident]:
         else:
             clash.start = min(clash.start, inc.start)
             clash.end = max(clash.end, inc.end)
+            clash.end_exclusive = max(clash.end_exclusive, inc.end_exclusive)
             clash.grain = f"{clash.grain}+{inc.grain}"
     return out
 
