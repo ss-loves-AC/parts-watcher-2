@@ -45,8 +45,10 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
     pinned: list[str] = []
 
     t0 = _now()
+    qmark = client.mark()
     incidents = detect(client)
     t1 = _now()
+    detect_queries = client.since(qmark)
 
     # ONE trace per run, with each investigation nested inside it. Emitting a
     # top-level trace per incident meant every run added five entries to the
@@ -65,7 +67,9 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
     detect_span = tracer.span(
         tid, "1-detect (all metrics)", t0, t1,
         input={"source": f"{DB}.segment_cube (dim_name='__total__')",
-               "sql": "sql/detect.sql"},
+               # The actual SQL, its parameters, what it returned and how long
+               # it took — not just a filename.
+               "queries": detect_queries},
         output={"incidents": [
             {"metric": i.metric, "window": f"{i.start} -> {i.end_exclusive}",
              "peak_wobbles": i.peak_wobbles, "effect_pct": i.effect_pct}
@@ -73,6 +77,7 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
     )
 
     all_ev, sections, trace_lines, query_notes = [], [], [], []
+    attributions = []
 
     for inc in incidents:
         # One span per investigation; its stages hang beneath it.
@@ -88,10 +93,11 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
         # investigation added five identical nodes and hid the real work.
 
         s0 = _now()
+        smark = client.mark()
         att = scan(client, inc)
         s1 = _now()
         tracer.span(tid, "2-segment-scan + 3-refine", s0, s1, parent=inv,
-                    input={"sql": ["sql/segment_scan.sql", "sql/refine.sql"],
+                    input={"queries": client.since(smark),
                            "min_z": MIN_Z, "min_requests_fallback": MIN_REQUESTS,
                            "candidates_tested": CANDIDATES_TESTED},
                     output={"verdict": att.verdict, "culprit": att.culprit,
@@ -123,6 +129,7 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
                         output={"saved_search": pin})
 
         all_ev.append(ev)
+        attributions.append(att)
         verified = not meta["unsourced"]
         sections.append(
             f"## {ev['metric'].title()} — {ev['window']}  ·  **{ev['verdict']}**\n\n"
@@ -145,6 +152,25 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
             f"--   detect.sql : weeks=3 threshold=4.0 grain={inc.grain}\n"
             f"--   scan       : metric={inc.metric} min_z={MIN_Z}\n"
         )
+
+    # One list, two answers. `detections` recorded WHAT moved; this writes back
+    # WHY, so the HyperDX view and a single SQL query both show the anomaly and
+    # its cause on one line. Without this a reader has to join two places in
+    # their head.
+    try:
+        for ev, att in zip(all_ev, attributions):
+            c = att.culprit
+            client.query(
+                "ALTER TABLE {db:Identifier}.detections UPDATE "
+                "verdict = {v:String}, cause = {c:String}, explained_pct = {e:Float64} "
+                "WHERE metric = {m:String} AND window_start = {w:DateTime}",
+                {"v": att.verdict,
+                 "c": f"{c['dimension']} = {c['value']}" if c else "no segment responsible",
+                 "e": round((att.residual or {}).get("explained_fraction", 0) * 100, 1),
+                 "m": att.incident["metric"], "w": att.incident["start"]},
+            )
+    except Exception as e:
+        print(f"  ! could not write conclusions back to detections: {e}")
 
     tracer.finish_trace(
         tid,

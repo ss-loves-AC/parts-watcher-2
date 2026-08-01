@@ -29,7 +29,12 @@ CREATE TABLE IF NOT EXISTS {{DB}}.detections
     peak_wobbles   Float64,                  -- how far past normal movement
     effect_pct     Float64,                  -- relative change, always > -100
     baseline_rung  LowCardinality(String),   -- which rung of the ladder fired
-    source_db      LowCardinality(String)
+    source_db      LowCardinality(String),
+    -- Filled in AFTER the investigation, so one row answers both "what moved"
+    -- and "why". A reader should not have to join two places in their head.
+    verdict        LowCardinality(String) DEFAULT '',
+    cause          String DEFAULT '',
+    explained_pct  Float64 DEFAULT 0
 )
 ENGINE = MergeTree
 PARTITION BY toYYYYMM(found_at)

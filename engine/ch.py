@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import time
 from pathlib import Path
 
 DEFAULT_ENV = Path.home() / ".config" / "clickhouse" / "clickathon.env"
@@ -47,8 +48,14 @@ class Client:
         self.binary = Path(binary or os.environ.get("CH_CLIENT", DEFAULT_CLIENT))
         if not self.binary.exists():
             raise SystemExit(f"missing clickhouse client: {self.binary}")
+        # Every query this client runs, so a trace can show the actual SQL and
+        # what it returned. "No trace, no credit" means a judge must be able to
+        # check the working, and a filename plus a conclusion is not the
+        # working — it is a claim about it.
+        self.log: list[dict] = []
 
-    def query(self, sql: str, params: dict[str, object] | None = None) -> list[dict]:
+    def query(self, sql: str, params: dict[str, object] | None = None,
+              name: str | None = None) -> list[dict]:
         """Run SQL, return rows as dicts.
 
         Values go through ClickHouse's own --param_ mechanism rather than string
@@ -68,14 +75,35 @@ class Client:
         # stdin=DEVNULL is load-bearing for INSERT ... VALUES: given --query,
         # the client keeps reading stdin for more rows and blocks until EOF,
         # so an insert that should take milliseconds hangs until the timeout.
+        t0 = time.time()
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180,
                               stdin=subprocess.DEVNULL)
+        elapsed = round((time.time() - t0) * 1000)
         if proc.returncode != 0:
+            self.log.append({"sql": sql, "params": params, "error": proc.stderr.strip()[:300]})
             raise RuntimeError(f"query failed:\n{proc.stderr.strip()}")
-        return [json.loads(line) for line in proc.stdout.splitlines() if line.strip()]
+        rows = [json.loads(line) for line in proc.stdout.splitlines() if line.strip()]
+        self.log.append({
+            "name": name or "inline",
+            "sql": sql.strip(),
+            "params": {k: str(v) for k, v in params.items()},
+            "rows_returned": len(rows),
+            "ms": elapsed,
+            # First rows only — enough to see WHAT came back without turning
+            # the trace into a data dump.
+            "sample": rows[:5],
+        })
+        return rows
 
     def query_file(self, name: str, params: dict[str, object] | None = None) -> list[dict]:
-        return self.query((SQL_DIR / name).read_text(), params)
+        return self.query((SQL_DIR / name).read_text(), params, name=name)
+
+    def since(self, mark: int) -> list[dict]:
+        """Queries run since `mark` — used to attach SQL to a trace span."""
+        return self.log[mark:]
+
+    def mark(self) -> int:
+        return len(self.log)
 
     def scalar(self, sql: str, params: dict[str, object] | None = None):
         rows = self.query(sql, params)
