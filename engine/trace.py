@@ -124,6 +124,10 @@ class Tracer:
     def finish_trace(self, trace_id: str, *, output=None, metadata=None) -> None:
         self._add("trace-create", {  # same id upserts
             "id": trace_id, "output": output, "metadata": metadata,
+            # Must be repeated. The upsert replaces the record, so omitting
+            # `public` here silently reset it to false — the flag was being set
+            # on creation and cleared moments later at the end of the run.
+            "public": True,
             "timestamp": _now(),
         })
 

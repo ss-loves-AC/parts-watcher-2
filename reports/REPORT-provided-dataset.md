@@ -1,6 +1,6 @@
 # Automated Root-Cause Analysis — report
 
-Generated 2026-08-01T18:35:42.398463+00:00 · database `pw` · 5 incident(s) found.
+Generated 2026-08-01T18:40:11.322353+00:00 · database `pw` · 5 incident(s) found.
 
 Every figure below was computed in ClickHouse and handed to the narrator
 as a finished string. The narrator has no database access and performs no
@@ -27,9 +27,9 @@ evidence before this was written.
 
 ## Request Volume — Jun 21  ·  **global**
 
-Request volume on Jun 21 fell from 232,435 to 126,052, a -45.77% drop that was 32x larger than this metric's normal movement. The verdict is global: every segment moved with the population (-43.5%), and no single segment stands apart. The proof is that all segments moved within normal spread relative to the population, including gaming (-4.0%), news (-2.5%), AE (-2.1%), ES (+2.0%), and rewarded (-1.8%). This rules out advertiser vertical, app category, country, and ad format as responsible.
+Request volume on Jun 21 fell to 126,052 from an expected 232,435, a drop of -45.77%, which is 32x larger than this metric's normal movement. The verdict is global: every segment moved with the population at -43.5%, and no single segment stands apart. The gaming vertical moved -4.0% relative to the population, the news app category -2.5%, country AE -2.1%, country ES +2.0%, and rewarded ad format -1.8%, all within normal spread. This rules out each of those segments as the cause, confirming the decline is population-wide.
 
-<sub>✅ every figure machine-verified against the computed evidence · [full trace of this investigation](https://langfuse.datagan.site/trace/5fb003e0-7678-43e5-9f61-19c7477f2405?observation=aa718727-5c85-4863-8438-3d3807171ef8) · narrated by `deepseek-chat`</sub>
+<sub>✅ every figure machine-verified against the computed evidence · [full trace of this investigation](https://langfuse.datagan.site/trace/cf5c520e-d7a8-4f71-9dd0-a3a64fdba859?observation=a2dc4fe6-1174-46db-9fd8-72fe66252a3c) · narrated by `deepseek-chat`</sub>
 
 <details><summary>evidence</summary>
 
@@ -48,9 +48,9 @@ Request volume on Jun 21 fell from 232,435 to 126,052, a -45.77% drop that was 3
 
 ## Fill Rate — Jun 23–Jun 25  ·  **localized**
 
-Fill rate dropped from 78.5% to 75.1% between Jun 23–Jun 25, a -4.30% change that was 18x larger than normal. The incident was localized to device OS version = Android 15, whose fill rate fell from 78.5% to 43.3% (-44.8%), versus -42.3% for everything else, with evidence strength of 187 standard errors. Excluding Android 15, fill rate moved only -0.08% against -4.36% for all traffic, fully explaining 98% of the movement. Had Android 15 held its baseline revenue per request, revenue would have been $69.53 higher. Device model = Galaxy S23, app = app_00246, device model = Redmi Note 12, and app = app_00160 were ruled out as they moved far less (-8.6%, -7.3%, -6.8%, -6.0% respectively) than Android 15's -42.3%.
+Fill rate dropped from 78.5% to 75.1% between Jun 23–Jun 25, a -4.30% change that was 18x larger than normal. The incident was localized to device OS version = Android 15, whose fill rate fell from 78.5% to 43.3% (-44.8%), versus -42.3% for everything else. Proof: excluding Android 15, fill rate moved only -0.08% against -4.36% for all traffic, explaining 98% of the movement. Had Android 15 held its baseline revenue per request, revenue would have been $69.53 higher. Device model = Galaxy S23, app = app_00246, device model = Redmi Note 12, and app = app_00160 were ruled out, as their relative movements (-8.6%, -7.3%, -6.8%, -6.0%) were far less than Android 15's -42.3%.
 
-<sub>✅ every figure machine-verified against the computed evidence · [full trace of this investigation](https://langfuse.datagan.site/trace/5fb003e0-7678-43e5-9f61-19c7477f2405?observation=133d9291-f768-49bb-ab51-0a94beac3d1c) · narrated by `deepseek-chat`</sub>
+<sub>✅ every figure machine-verified against the computed evidence · [full trace of this investigation](https://langfuse.datagan.site/trace/cf5c520e-d7a8-4f71-9dd0-a3a64fdba859?observation=821c5830-2563-4389-9f93-6b323ba7ed57) · narrated by `deepseek-chat`</sub>
 
 <details><summary>evidence</summary>
 
@@ -73,7 +73,7 @@ Fill rate dropped from 78.5% to 75.1% between Jun 23–Jun 25, a -4.30% change t
 
 Revenue on Jun 21 fell from $18.22 to $9.77, a -46.45% drop that is 18x larger than this metric's normal movement. The verdict is global: every segment moved with the population (-44.8%), and no single segment is responsible. The finance app category stood out at -34.7% against the population, but removing it leaves -43.37% of the original -44.81%, accounting for only 3% of the movement. App app_00000, ecommerce, and gaming were all ruled out as they moved within normal spread (+4.2%, +4.2%, and -4.1% relative to the population, respectively).
 
-<sub>✅ every figure machine-verified against the computed evidence · [full trace of this investigation](https://langfuse.datagan.site/trace/5fb003e0-7678-43e5-9f61-19c7477f2405?observation=a9bcb089-c8e9-4273-96a5-4437318465f1) · narrated by `deepseek-chat`</sub>
+<sub>✅ every figure machine-verified against the computed evidence · [full trace of this investigation](https://langfuse.datagan.site/trace/cf5c520e-d7a8-4f71-9dd0-a3a64fdba859?observation=4b6a44d6-f2b0-441c-8aa2-aa8f4a8c4090) · narrated by `deepseek-chat`</sub>
 
 <details><summary>evidence</summary>
 
@@ -91,9 +91,9 @@ Revenue on Jun 21 fell from $18.22 to $9.77, a -46.45% drop that is 18x larger t
 
 ## Ecpm — Jun 19–Jun 22  ·  **localized**
 
-From Jun 19–Jun 22, eCPM fell from $2.475 to $2.416, a -2.37% drop that was 5x larger than normal. The decline was localized to app category = finance, whose eCPM dropped from $2.470 to $1.613 (-34.7%), while excluding finance, eCPM actually rose +0.05% versus -2.38% for all traffic. This segment fully explained 98% of the movement, and had finance held at baseline, revenue would have been $41.56 higher. Other candidates were ruled out: app = app_00011 moved -32.7%, ad format = interstitial -4.8%, and native +4.1%, all far less than finance's -33.1% relative shift. No additional cause was required.
+eCPM fell from $2.475 to $2.416, a -2.37% drop that was 5x larger than normal movement. The decline was localized to app category = finance, whose eCPM dropped from $2.470 to $1.613 (-34.7%). Excluding finance, eCPM moved +0.05% against -2.38% for all traffic, fully explaining 98% of the movement. Had finance held baseline, revenue would have been $41.56 higher. App = app_00011 (-32.7%), ad format = interstitial (-4.8%), and native (+4.1%) were ruled out as lesser contributors.
 
-<sub>✅ every figure machine-verified against the computed evidence · [full trace of this investigation](https://langfuse.datagan.site/trace/5fb003e0-7678-43e5-9f61-19c7477f2405?observation=f7e44037-5b7b-4406-8b49-2ea5b3437e21) · narrated by `deepseek-chat`</sub>
+<sub>✅ every figure machine-verified against the computed evidence · [full trace of this investigation](https://langfuse.datagan.site/trace/cf5c520e-d7a8-4f71-9dd0-a3a64fdba859?observation=ef353155-255f-4ed8-921e-c4632cf3e491) · narrated by `deepseek-chat`</sub>
 
 <details><summary>evidence</summary>
 
@@ -114,9 +114,9 @@ From Jun 19–Jun 22, eCPM fell from $2.475 to $2.416, a -2.37% drop that was 5x
 
 ## Fill Rate — Jun 29–Jun 30  ·  **partial**
 
-Fill rate fell from 78.4% to 77.5% (a -1.10% change) between Jun 29–Jun 30, a movement 4x larger than normal. Country = JP was the primary culprit, dropping from 78.1% to 69.8% (-10.6%), with evidence strength of 32 standard errors, and excluding JP shifted fill rate to +0.24% versus -0.45% for all traffic. This segment explains 46% of the movement, narrowing further to device OS version = iOS 18.1 within JP (0.7857 → 0.3943, -49.8%). Ruled out as sole causes were country = JP (moved -10.2% relative to population), Android 15 (+9.0%), iPhone 14 (-5.5%), and APAC (-3.2%). Had JP held baseline revenue per request, revenue would have been $4.50 higher.
+Fill rate fell from 78.4% to 77.5% (a -1.10% change) between Jun 29–Jun 30, a movement 4x larger than normal. The culprit is country = JP, which dropped from 78.1% to 69.8% (-10.6%), with evidence strength of 32 standard errors. Excluding JP, fill rate actually rose +0.24% versus -0.45% for all traffic, proving JP is responsible, though it explains only 46% of the movement. Within JP, the drop concentrates in device OS version = iOS 18.1 (0.7857 → 0.3943, -49.8%). Ruled out as primary causes: country = JP (relative -10.2%), Android 15 (+9.0%), iPhone 14 (-5.5%), and APAC (-3.2%). Had JP held baseline revenue per request, revenue would have been $4.50 higher.
 
-<sub>✅ every figure machine-verified against the computed evidence · [full trace of this investigation](https://langfuse.datagan.site/trace/5fb003e0-7678-43e5-9f61-19c7477f2405?observation=c27afb57-ac49-4481-a030-f96009ab295b) · narrated by `deepseek-chat`</sub>
+<sub>✅ every figure machine-verified against the computed evidence · [full trace of this investigation](https://langfuse.datagan.site/trace/cf5c520e-d7a8-4f71-9dd0-a3a64fdba859?observation=fa0fdbe3-d553-44d9-ab19-5b97dcc16623) · narrated by `deepseek-chat`</sub>
 
 <details><summary>evidence</summary>
 
@@ -140,13 +140,13 @@ Fill rate fell from 78.4% to 77.5% (a -1.10% change) between Jun 29–Jun 30, a 
 
 Every investigation was recorded. Open the run, or jump straight to an incident:
 
-**Run:** https://langfuse.datagan.site/trace/5fb003e0-7678-43e5-9f61-19c7477f2405
+**Run:** https://langfuse.datagan.site/trace/cf5c520e-d7a8-4f71-9dd0-a3a64fdba859
 
-- request volume   Jun 21                 https://langfuse.datagan.site/trace/5fb003e0-7678-43e5-9f61-19c7477f2405?observation=aa718727-5c85-4863-8438-3d3807171ef8
-- fill rate        Jun 23–Jun 25          https://langfuse.datagan.site/trace/5fb003e0-7678-43e5-9f61-19c7477f2405?observation=133d9291-f768-49bb-ab51-0a94beac3d1c
-- revenue          Jun 21                 https://langfuse.datagan.site/trace/5fb003e0-7678-43e5-9f61-19c7477f2405?observation=a9bcb089-c8e9-4273-96a5-4437318465f1
-- eCPM             Jun 19–Jun 22          https://langfuse.datagan.site/trace/5fb003e0-7678-43e5-9f61-19c7477f2405?observation=f7e44037-5b7b-4406-8b49-2ea5b3437e21
-- fill rate        Jun 29–Jun 30          https://langfuse.datagan.site/trace/5fb003e0-7678-43e5-9f61-19c7477f2405?observation=c27afb57-ac49-4481-a030-f96009ab295b
+- request volume   Jun 21                 https://langfuse.datagan.site/trace/cf5c520e-d7a8-4f71-9dd0-a3a64fdba859?observation=a2dc4fe6-1174-46db-9fd8-72fe66252a3c
+- fill rate        Jun 23–Jun 25          https://langfuse.datagan.site/trace/cf5c520e-d7a8-4f71-9dd0-a3a64fdba859?observation=821c5830-2563-4389-9f93-6b323ba7ed57
+- revenue          Jun 21                 https://langfuse.datagan.site/trace/cf5c520e-d7a8-4f71-9dd0-a3a64fdba859?observation=4b6a44d6-f2b0-441c-8aa2-aa8f4a8c4090
+- eCPM             Jun 19–Jun 22          https://langfuse.datagan.site/trace/cf5c520e-d7a8-4f71-9dd0-a3a64fdba859?observation=ef353155-255f-4ed8-921e-c4632cf3e491
+- fill rate        Jun 29–Jun 30          https://langfuse.datagan.site/trace/cf5c520e-d7a8-4f71-9dd0-a3a64fdba859?observation=fa0fdbe3-d553-44d9-ab19-5b97dcc16623
 
 ---
 
