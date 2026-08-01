@@ -147,6 +147,50 @@ Given the above, the model's entire job is:
 
 Every number in that paragraph is a field it was handed.
 
+### Where this rule comes from
+
+It isn't a stylistic preference. The problem statement asks for it in three
+separate places:
+
+> *"Consider: let deterministic code do the analysis and use the LLM only to
+> narrate."*
+>
+> *"Analytical depth in ClickHouse — the drill-down should live in queries, not
+> in the LLM. Judges will look at whether ClickHouse is doing the real work."*
+>
+> *"A system that streams raw events into an LLM will be slow, expensive, and
+> prone to inventing numbers."*
+
+And the scoring makes the downside asymmetric: **"a single fabricated figure
+costs more than a missed anomaly."** A missed anomaly loses points on one
+criterion. A hallucinated number loses trustworthiness, and a judge who catches
+one stops believing the rest of the output.
+
+### Why "don't make up numbers" in the prompt isn't enough
+
+An instruction is a request the model can fail to honour, and the failures are
+the quiet kind: `-0.44797` narrated as "about 45%" when the answer key says
+44.8%, or a plausible-looking share-of-traffic figure that was never computed.
+Nothing errors. The prose reads fine. It's wrong.
+
+Removing the *capability* is stronger than forbidding the behaviour. The model's
+context contains the evidence JSON and nothing else — no raw rows, no table
+access, no arithmetic to perform. A number that isn't in the JSON has no source
+to come from.
+
+### How it's enforced, mechanically
+
+The constraint is testable, so we test it rather than trusting it:
+
+1. Extract every numeric token from the generated narration.
+2. Check each one appears as a value in the evidence JSON it was given.
+3. Any unsourced number → regenerate, and fail the run if it recurs.
+
+That check is a few lines of code and it turns "the LLM shouldn't invent
+figures" into "an invented figure cannot reach the output". It also produces a
+defensible claim for the deck: *every number in every diagnosis is
+machine-verified against the computed evidence.*
+
 ---
 
 ## Architecture
@@ -340,6 +384,112 @@ should read it as deliberate separation, not confusion.
 
 ---
 
+---
+
+# Building for the unseen incident
+
+> *"A fresh slice of the same universe, with new planted anomalies no one has
+> seen, will be released to all teams simultaneously in the final hours. Your
+> submission must include what your system produced for it: the diagnosis, the
+> numbers behind it, and the trace that proves your system generated them.
+> Build for the unseen incident, not the anomalies you found during the build."*
+
+This carries significant weight, every team gets identical input, and outputs
+are directly comparable. It is also the criterion most likely to be lost to
+something mundane — a hardcoded date, a crashed loader, a missing trace — rather
+than to weak analysis.
+
+**The governing rule: nothing in this system may be tuned to the four movements
+we found on Jun 1 – Jul 5.** Those are for validating that the machinery works,
+never for calibration.
+
+## 1. Nothing hardcodes a date
+
+Every window is derived from the data's own `max(event_time)`. No literal
+timestamp appears anywhere in the detector or scan. The validated queries in
+this document use literal dates because they were run by hand; the committed
+versions take windows as parameters.
+
+Checked mechanically before freeze: grep the engine for four-digit years and
+expect zero hits outside tests.
+
+## 2. The loader is already the unseen-incident loader
+
+`load/load.sh` is idempotent — every table is truncated before insert — and the
+input path is a variable:
+
+```bash
+DATA_DIR=/path/to/unseen ./load/load.sh
+```
+
+That is the whole procedure. It runs in ~31s, and its verify step prints row
+counts, funnel totals, and **unmatched dimension keys**, so a broken load is
+loud rather than silent. No hand-written SQL on the night.
+
+## 3. Schema choices that survive unfamiliar input
+
+| Risk | How the schema absorbs it |
+|---|---|
+| A new `ad_format` / `country` / `device_model` value | `LowCardinality(String)`, not `Enum8` — a new value inserts fine. This is why we [deviated from `schema-types-enum`](CLICKHOUSE_REVIEW.md) |
+| A dimension key with no matching row | Falls back to `'unknown'` rather than dropping the event, and the verify step **counts** it |
+| Unfilled requests | Already labelled `'none'`, distinct from `'unknown'`, so "no advertiser" never looks like a join bug |
+| A new dimension entirely | One line in the `ARRAY JOIN` array in `cube.sql`; no new table, no new query |
+
+## 4. The baseline ladder — the real technical risk
+
+Our detector wants **3 trailing weeks of same-weekday history**. A "fresh slice"
+may be far shorter. If it's five days, there is no 3-week history and a naive
+implementation returns nothing, or worse, garbage.
+
+So the baseline degrades in defined steps rather than failing:
+
+| Available history | Baseline used |
+|---|---|
+| ≥ 3 weeks | Same hour-of-week, median over trailing 3 weeks *(preferred)* |
+| 1–3 weeks | Same hour-of-week over whatever weeks exist |
+| < 1 week | **Seasonal profile carried from the provided 5-week dataset** — day-of-week × hour-of-day shape, rescaled to the new slice's own level |
+| No usable history | Within-file: each hour against the median of the same hour-of-day across the slice |
+
+The third rung is the interesting one and it's legitimate: the statement says
+the unseen data is *"a fresh slice of the same universe"*, so the seasonality
+shape is shared even when the incidents aren't. Carrying the *shape* while
+rescaling to the new *level* uses what genuinely transfers and nothing that
+doesn't.
+
+Which rung fired is recorded in the evidence JSON and stated in the diagnosis —
+if we fall back, the judge sees that we did and why.
+
+## 5. Rehearse before the drop, not during it
+
+At ~T+18h, run a **holdout rehearsal**: reload treating Jun 1–28 as history and
+Jun 29 – Jul 5 as an "unseen" slice, through the real command path, producing a
+real submission bundle. The point is that when the actual file lands, the
+pipeline is executing for the *second* time, not the first.
+
+## 6. One command, one bundle
+
+The deliverable is *"the diagnosis, the numbers behind it, and the trace that
+proves your system generated them"* — and **"no trace, no credit."** So the run
+emits all three together, not a diagnosis we then hunt for evidence to support:
+
+```
+out/unseen/
+├── diagnosis.md        plain-language, one section per detected incident
+├── evidence.json       every computed number, plus the ruled-out ledger
+├── trace.txt           Langfuse trace URL(s) + investigation IDs
+└── queries.sql         the exact SQL that produced every figure
+```
+
+`queries.sql` is deliberate: it lets a judge re-run our numbers against their
+own answer key. That is the strongest possible form of "reproducible from the
+data", and it costs nothing because the engine already builds the SQL.
+
+## 7. Reserve the clock
+
+Feature freeze at **T+20h**. The drop lands in the final hours and the portal
+closes server-side at 12pm — submission goes in at **T+23.5h**, not T+24h. The
+last hours are for running the unseen slice and packaging, never for building.
+
 ## Innovation levers
 
 - **The ruled-out ledger as a first-class output** — the engine tests every
@@ -362,7 +512,7 @@ should read it as deliberate separation, not confusion.
 | T+6h | Segment scan + refinement → evidence JSON | |
 | T+9h | LLM narration from JSON only; Langfuse tracing | |
 | T+13h | Agent shell (reuse `sre_agent.py`); HyperDX alert trigger | |
-| T+18h | Harden loader for the unseen file | |
+| T+18h | **Holdout rehearsal** — full unseen path end to end | |
 | T+20h | Freeze. Unseen incident → run → capture output + trace | |
 | T+23h | Video, deck, 500-word summary | |
 | T+23.5h | **Submit** — portal closes server-side at 12pm | |
@@ -371,6 +521,8 @@ should read it as deliberate separation, not confusion.
 
 - **Hardcoded dates.** The unseen slice will not span Jun 1 – Jul 5. Every
   baseline must derive its windows from the data's own `max(event_time)`.
+  Mitigated by the baseline ladder and the pre-freeze grep — see
+  [Building for the unseen incident](#building-for-the-unseen-incident).
 - **Threshold calibration.** Tune on the four known windows but favour
   precision — Jun 21 shows how easy a confident wrong answer is.
 - **Small-segment noise.** Without a minimum-volume guard, a 40-request app at
