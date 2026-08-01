@@ -4,7 +4,7 @@
 -- every dimension is a row shape, not a column, so the drill-down is one
 -- parameterised statement rather than twelve.
 --
--- Params: metric, win_start, win_end, weeks, min_requests
+-- Params: metric, win_start, win_end, weeks, min_requests, min_z
 --
 -- ---------------------------------------------------------------------------
 -- THE UNIFORMITY TEST — the single most important idea in this file.
@@ -24,6 +24,38 @@
 -- large its absolute swing. A segment that genuinely broke stands apart.
 -- Measured: Android 15 scores -42.3% while the worst Jun 21 segment scores
 -- -2.9%. That gap is the difference between a diagnosis and a fabrication.
+--
+-- ---------------------------------------------------------------------------
+-- SIGNIFICANCE — the second gate, and the one that used to be a guess.
+--
+-- vs_global says a segment moved DIFFERENTLY. It does not say the move was
+-- real. A 300-request segment can post a violent percentage swing on pure
+-- noise, and ranking by effect alone puts it on top: that is how the eCPM scan
+-- first crowned a single app that turned out to explain 24% of the movement.
+--
+-- The old guard against this was a hand-picked `min_requests = 5000`.
+--
+-- fill_rate, render_rate and ctr are PROPORTIONS, so there is an exact test
+-- rather than a guess: the two-proportion z-test, built into ClickHouse as
+-- proportionsZTest(successes_x, successes_y, trials_x, trials_y, conf, pool).
+-- Verified against a hand-rolled formula, identical to one decimal.
+--
+-- Measured on the Android 15 incident, with the volume floor dropped to 200:
+--     os_version = Android 15        z = -186.9
+--     region = EU                    z =  -51.8
+--     device_model = Galaxy A54      z =  -48.8
+-- A 3.6x separation, and the 1/n term inside the standard error handles small
+-- segments on its own — no arbitrary volume floor needed.
+--
+-- It also removes a structural artifact for free: advertiser_id / vertical /
+-- campaign_type only exist on FILLED requests, so their fill rate is 1.0 by
+-- construction. They used to flood the top of the scan at a spurious +4.6%
+-- (an artifact of vs_global moving when the population moves). Their z is
+-- exactly 0, so they now drop out without a special case.
+--
+-- requests / revenue / ecpm are not proportions and the cube carries no
+-- variance term for them, so they keep the volume guard for now. Adding
+-- sum(revenue^2) to the cube would enable meanZTest for eCPM later.
 -- ---------------------------------------------------------------------------
 
 WITH
@@ -78,6 +110,16 @@ WITH
             dim_value,
             i_requests,
             b_scale,
+            -- Exact test for the proportion metrics; NaN where it doesn't apply.
+            multiIf(
+                {metric:String} = 'fill_rate',
+                    proportionsZTest(i_fills, b_fills, i_requests, b_requests, 0.95, 'pooled').1,
+                {metric:String} = 'render_rate',
+                    proportionsZTest(i_impressions, b_impressions, i_fills, b_fills, 0.95, 'pooled').1,
+                {metric:String} = 'ctr',
+                    proportionsZTest(i_clicks, b_clicks, i_impressions, b_impressions, 0.95, 'pooled').1,
+                nan
+            ) AS z,
             multiIf(
                 {metric:String} = 'requests',    toFloat64(i_requests),
                 {metric:String} = 'fill_rate',   if(i_requests    > 0, i_fills / i_requests, 0),
@@ -112,6 +154,7 @@ SELECT
     baseline_value,
     incident_value,
     i_requests AS incident_requests,
+    z,
     if(baseline_value > 0, incident_value / baseline_value - 1, 0) AS seg_change,
     -- The uniformity test. See the header.
     if(baseline_value > 0,
@@ -120,7 +163,12 @@ SELECT
     (SELECT global_ratio FROM globals) - 1 AS global_change
 FROM valued
 WHERE dim_name != '__total__'
-  -- Volume guard: a 40-request segment at 0% fill will out-rank a real
-  -- incident on percentage terms alone. Small segments are noise, not causes.
-  AND i_requests >= {min_requests:UInt64}
+  AND if(
+        isNaN(z),
+        -- No exact test available: fall back to the volume guard.
+        i_requests >= {min_requests:UInt64},
+        -- Exact test available: significance replaces the guess. The small
+        -- floor only keeps degenerate 1-row segments out of the output.
+        (abs(z) >= {min_z:Float64}) AND (i_requests >= 200)
+      )
 ORDER BY abs(vs_global) DESC

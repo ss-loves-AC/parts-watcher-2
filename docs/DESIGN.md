@@ -80,6 +80,28 @@ rest is the culprit. Nothing standing apart means the move is global.
 
 That's the whole detector. Steps 1–3 find *when*, step 4 finds *who*.
 
+### Three questions, not one
+
+Step 4 is really three tests, and conflating them is how a confident wrong
+answer gets produced:
+
+| Question | Test |
+|---|---|
+| Is the change **real**? | two-proportion z-test (`proportionsZTest`) |
+| Is it **distinctive**? | change vs the population's change |
+| Is it **responsible**? | remove it and remeasure |
+
+Only the third can name a cause. A segment can be wildly unusual and still
+account for almost none of the movement — on the eCPM incident a single app beat
+the population by −33% while explaining 24% of what happened.
+
+The significance test matters because effect size alone rewards small segments
+with violent swings. `fill_rate`, `render_rate` and `ctr` are proportions, so
+there is an exact test rather than a volume heuristic. Measured on the Android
+15 incident: **z = −186.9 against a next-best of −51.8**, with the volume floor
+dropped to 200 — the `1/n` term in the standard error handles small segments by
+itself.
+
 ## Three verdicts, decided by code
 
 The classification is made by deterministic rules, never by the LLM. The LLM is
@@ -366,30 +388,55 @@ incidents become ad-metric incidents.
 1. **Langfuse — mandatory.** "No trace, no credit" makes traceability a scored
    deliverable. Every investigation step is a span; the judge replays what was
    checked, in what order, and why. Already wired in the warm-up.
-2. **HyperDX alert → agent — highest innovation-per-hour.** It's the literal
-   title of the problem statement, and the dispatch path is already proven.
-3. **ClickStack OTEL spans** over the RCA pipeline — the system's own telemetry
-   becomes queryable.
+2. **ClickStack OTEL spans** over the RCA pipeline — the system's own telemetry
+   becomes queryable, in the same ClickHouse as the ad data.
+3. **HyperDX dashboards** over the pipeline, plus the ClickStack MCP that
+   backs LibreChat.
 4. **LibreChat + ClickStack MCP** — the "ask a follow-up" ending in the
    suggested demo. Last three hours, strictly optional.
 
+### The alert source is our own detector, not HyperDX
+
+Earlier drafts put the HyperDX alert → `repository_dispatch` → agent path on
+the critical path, ranked "highest innovation-per-hour". **That was the wrong
+call.** In the warm-up stack that webhook edge is the one piece never finished,
+and completing it under the clock is unbudgeted risk sitting directly on a
+scored path.
+
+`detect.sql` on a schedule *is* an alert, it is ClickHouse-native, and it is
+the machinery actually being judged. "From alert to answer" is satisfied by the
+system detecting its own trigger rather than by borrowing one.
+
+HyperDX keeps its integration value — dashboards, and the MCP that gives
+LibreChat its tools — without an outage on a 7.6GB VPC being able to take the
+diagnosis down with it.
+
 Doing all four organically also targets the Spot Award.
 
-## Architectural caveat: two ClickHouse instances
+## One ClickHouse, not two
 
-The hackathon requires ad data to live in **ClickHouse Cloud** (ap-south-1).
-The warm-up ClickStack / HyperDX / Langfuse stack runs on the **Hetzner VPC**
-against a *different* ClickHouse, with a hard 7.6GB memory ceiling.
+An earlier draft accepted a split — ad data in ClickHouse Cloud, observability
+in the VPC's ClickHouse — and argued it should be explained defensively in the
+deck. Better to remove the thing that needs explaining.
 
-Don't merge them. The split is clean and defensible:
+**ClickStack/HyperDX point at our ClickHouse Cloud service**, so the pipeline's
+own telemetry lands beside the data it is about:
 
-- **Cloud** = the primary datastore. Ad events, the cube, the investigations
-  table. This is what "ClickHouse is the primary database" means for judging.
-- **VPC** = the observability plane. Langfuse receives traces over HTTP;
-  HyperDX raises alerts. Neither needs to hold the ad data.
+> One ClickHouse holds the ad events, the cube, the investigations table, **and**
+> the pipeline's own spans.
 
-State this explicitly in the deck — a judge seeing two ClickHouse instances
-should read it as deliberate separation, not confusion.
+A judge can then `JOIN` an investigation against the traffic that triggered it,
+in a single query. "ClickHouse is the primary datastore" stops being a claim
+and becomes structural — and the archetype-1 self-observation loop is real
+rather than aspirational.
+
+The VPC still *runs* the services (HyperDX, LibreChat, Langfuse); it just stops
+being a second place where data lives. Repointing ClickStack is a connection
+plus a source, which the warm-up already scripts as a Mongo upsert.
+
+**Langfuse is the one exception** — repointing its storage means migrating its
+own schema, and judges follow the Langfuse UI link to inspect a trace rather
+than querying it. Not worth the hours.
 
 ---
 

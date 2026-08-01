@@ -36,20 +36,22 @@
   ╔═══════════════════════╗                          ╔═══════════════════════════╗
   ║  [1] DETECT           ║   40,960 rows · 4.9ms    ║  [2] SEGMENT SCAN         ║
   ║  sql/detect.sql       ║                          ║  all 12 dims, one query   ║
-  ║                       ║                          ║                     69ms  ║
-  ║  expected = median of ║                          ║  each segment's %change   ║
-  ║   same weekday+hour,  ║                          ║   vs the population's     ║
-  ║   3 weeks back        ║                          ║   %change                 ║
-  ║  wobble  = MAD of the ║                          ╚════════════╤══════════════╝
-  ║   ratio, whole series ║                                       │
-  ║  wobbles = effect/    ║                                       ▼
-  ║   wobble   (gate: 4)  ║                          ╔═══════════════════════════╗
-  ║                       ║                          ║  [3] REFINE               ║
-  ║  grains: hourly+daily ║                          ║  condition on the winner, ║
-  ║  pass 2 excludes      ║                          ║  re-scan for residual     ║
-  ║   anomalous days      ║                          ║  on ad_events      356ms  ║
-  ║   from history        ║                          ╚════════════╤══════════════╝
-  ╚═══════════╤═══════════╝                                       │
+  ║                       ║                          ║  69ms · full report 8.3s  ║
+  ║  expected = median of ║                          ║  REAL?  proportionsZTest  ║
+  ║   same weekday+hour,  ║                          ║   exact, no volume guess  ║
+  ║   3 weeks back        ║                          ║  DISTINCTIVE?  %change    ║
+  ║  wobble  = MAD of the ║                          ║   vs the population's     ║
+  ║   ratio, whole series ║                          ╚════════════╤══════════════╝
+  ║  wobbles = effect/    ║                                       │
+  ║   wobble   (gate: 4)  ║                                       ▼
+  ║                       ║                          ╔═══════════════════════════╗
+  ║  grains: hourly+daily ║                          ║  [3] REFINE — the arbiter ║
+  ║  pass 2 excludes      ║                          ║  RESPONSIBLE?  remove each║
+  ║   anomalous days      ║                          ║   candidate, keep the one ║
+  ║   from history        ║                          ║   leaving least behind.   ║
+  ║                       ║                          ║   ALL candidates in ONE   ║
+  ║                       ║                          ║   ad_events scan          ║
+  ╚═══════════╤═══════════╝                          ╚════════════╤══════════════╝
               │  when                                             │  who
               └────────────────────────┬──────────────────────────┘
                                        ▼
@@ -82,9 +84,17 @@
 
   ── observability plane ────────────────────────────────────────────────────────
 
-    HyperDX ──alert──► repository_dispatch ──► [1]        Langfuse ◄── spans from
-    (metric threshold)                                    (1..5, one trace per
-                                                           investigation)
+    schedule ──► [1] DETECT ──► investigation      the detector IS the alert;
+    (detect.sql on a timer)                        no external trigger on the
+                                                   critical path
+
+    Langfuse ◄── spans from [1]..[5], one trace per investigation   (VPC)
+
+    ClickStack/HyperDX ──► reads ClickHouse Cloud, NOT a second ClickHouse
+      · OTEL spans of the pipeline land beside the ad data
+      · dashboards over the investigation record
+      · serves the MCP that gives LibreChat its tools
+
     LibreChat ──ClickStack MCP──► investigations table
     ("why did you rule out volume?")
 
@@ -95,7 +105,7 @@
     ║   ║                              └───┘
     ╚═══╝
 
-    [1] built    [2] validated inline, not yet committed
-    [3] validated inline, not yet committed    [4] not built    [5] not built
+    [1] built    [2] built    [3] built
+    [4] not built    [5] not built
     observability plane: not built
 ```

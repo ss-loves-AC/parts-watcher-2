@@ -1,0 +1,61 @@
+name: Provision ClickStack sources
+
+# Registers the ClickHouse Cloud connection + Ad Events source with HyperDX.
+#
+# This exists so the wiring is reproducible and reviewable rather than a
+# manual mongosh session someone ran once. The ch-hacker stack's hard rule is
+# "never deploy manually" — VPC state changes go through the self-hosted
+# runner, which already holds the stack and Docker socket.
+#
+# The script is idempotent, so re-running is free.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  provision:
+    runs-on: [self-hosted, vpc]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the stack is up
+        run: |
+          docker ps --format '{{.Names}}' | grep -q '^ch-hacker-mongodb-1$' \
+            || { echo "ch-hacker-mongodb-1 not running"; exit 1; }
+          docker ps --format '{{.Names}}' | grep -q '^ch-hacker-hyperdx-1$' \
+            || { echo "ch-hacker-hyperdx-1 not running"; exit 1; }
+
+      - name: Verify HyperDX can reach ClickHouse Cloud
+        env:
+          CH_HOST: ${{ secrets.CH_HOST }}
+          CH_USER: ${{ secrets.CH_USER }}
+          CH_PASSWORD: ${{ secrets.CH_PASSWORD }}
+        run: |
+          # Fail here rather than registering a connection that cannot be used.
+          docker exec -i -e CH_HOST -e CH_USER -e CH_PASSWORD \
+            ch-hacker-hyperdx-1 node -e '
+              const https = require("https");
+              const q = encodeURIComponent("SELECT count() FROM rca.ad_events");
+              https.request({
+                host: process.env.CH_HOST, port: 8443, path: "/?query=" + q, method: "GET",
+                headers: { Authorization: "Basic " + Buffer.from(
+                  process.env.CH_USER + ":" + process.env.CH_PASSWORD).toString("base64") },
+                timeout: 20000,
+              }, (r) => {
+                let d = ""; r.on("data", (c) => d += c);
+                r.on("end", () => {
+                  console.log("HTTP", r.statusCode, d.trim());
+                  process.exit(r.statusCode === 200 ? 0 : 1);
+                });
+              }).on("error", (e) => { console.log("ERROR", e.message); process.exit(1); }).end();
+            '
+
+      - name: Upsert connection and sources
+        env:
+          CH_HOST: ${{ secrets.CH_HOST }}
+          CH_USER: ${{ secrets.CH_USER }}
+          CH_PASSWORD: ${{ secrets.CH_PASSWORD }}
+        run: |
+          docker exec -i -e CH_HOST -e CH_USER -e CH_PASSWORD \
+            ch-hacker-mongodb-1 mongosh --quiet hyperdx \
+            < scripts/provision-clickstack.js

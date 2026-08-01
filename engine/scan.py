@@ -24,9 +24,13 @@ LOCALIZATION_FLOOR = 0.05
 # Without it, a movement spread across several segments gets reported as one.
 DOMINANCE_RATIO = 2.0
 
-# Segments below this many requests in the incident window are excluded: a tiny
-# segment can post an enormous percentage swing on pure noise.
+# Fallback volume guard, used ONLY for metrics with no exact test (requests,
+# revenue, ecpm). Proportion metrics are gated by MIN_Z instead.
 MIN_REQUESTS = 5000
+
+# Significance gate for proportion metrics, in standard errors. Applies to
+# fill_rate / render_rate / ctr via ClickHouse's proportionsZTest.
+MIN_Z = 4.0
 
 # How much of the movement must vanish when the accused segment is removed.
 # The residual test is the ARBITER, not a footnote: a segment can beat the
@@ -75,6 +79,12 @@ class Attribution:
         return asdict(self)
 
 
+def _sql_array(values) -> str:
+    """ClickHouse Array(String) literal, single quotes escaped."""
+    return "[" + ",".join("'" + str(v).replace("\\", "\\\\").replace("'", "\\'") + "'"
+                          for v in values) + "]"
+
+
 def _window_end(inc: Incident) -> str:
     """The exclusive end recorded by the detector, where the grain was known."""
     return inc.end_exclusive
@@ -89,6 +99,7 @@ def scan(client: Client, inc: Incident, weeks: int = 3) -> Attribution:
             "win_end": _window_end(inc),
             "weeks": weeks,
             "min_requests": MIN_REQUESTS,
+            "min_z": MIN_Z,
         },
     )
 
@@ -102,6 +113,7 @@ def scan(client: Client, inc: Incident, weeks: int = 3) -> Attribution:
             "seg_change": float(r["seg_change"]),
             "vs_global": float(r["vs_global"]),
             "requests": int(r["incident_requests"]),
+            "z": None if r["z"] in ("nan", None) else round(float(r["z"]), 1),
         }
         for r in rows
     ]
@@ -134,23 +146,29 @@ def scan(client: Client, inc: Incident, weeks: int = 3) -> Attribution:
 
 
     # --- stage 3: remove each leading candidate, keep the best explainer ----
-    tested = []
-    for cand in cands[:CANDIDATES_TESTED]:
-        rows_r = client.query_file(
-            "refine.sql",
-            {
-                "metric": inc.metric,
-                "dim": cand["dimension"],
-                "value": cand["value"],
-                "win_start": inc.start,
-                "win_end": _window_end(inc),
-                "weeks": weeks,
-            },
-        )
-        scoped = {r["scope"]: r for r in rows_r}
-        a = float(scoped.get("all", {}).get("change", 0))
-        w = float(scoped["without_accused"]["change"]) if "without_accused" in scoped else 0.0
-        tested.append((cand, a, w))
+    # All candidates are evaluated in ONE scan of ad_events. refine.sql uses a
+    # sentinel rather than throwIf for an unrecognised dimension (multiIf
+    # evaluates its fallback eagerly inside arrayMap), so validate here.
+    probe = cands[:CANDIDATES_TESTED]
+    unknown = {c["dimension"] for c in probe} - set(DIM_LABELS)
+    if unknown:
+        raise ValueError(f"unknown dimension(s) in candidates: {sorted(unknown)}")
+
+    rows_r = client.query_file(
+        "refine.sql",
+        {
+            "metric": inc.metric,
+            "dims": _sql_array(c["dimension"] for c in probe),
+            "values": _sql_array(c["value"] for c in probe),
+            "win_start": inc.start,
+            "win_end": _window_end(inc),
+            "weeks": weeks,
+        },
+    )
+    tested = [
+        (probe[int(r["cand_idx"]) - 1], float(r["change_all"]), float(r["change_without"]))
+        for r in rows_r
+    ]
 
     # Best explainer = the one that leaves the least movement behind.
     top, all_change, without_change = min(tested, key=lambda x: abs(x[2]))
