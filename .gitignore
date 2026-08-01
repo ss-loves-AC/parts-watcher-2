@@ -16,3 +16,6 @@ __pycache__/
 # generated output bundle — except the report, which IS the submission
 out/
 !out/REPORT.md
+
+# the video script stays local — presentation notes, not code
+submission/VIDEO.md

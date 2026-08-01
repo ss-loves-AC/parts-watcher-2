@@ -205,21 +205,27 @@ segment_cube   <b>2.9M rows · 17 MiB · 12 dimensions</b>
   <p><strong>Not discouraged — structurally impossible, and verified.</strong>
   Tested against a re-rounded <span class="miss">47.7%</span> and a computed
   <span class="miss">106,359</span>; both caught.</p>
+  <p style="margin-top:.4rem">And every trace carries <strong>the SQL actually
+  run</strong> — its parameters, rows returned, elapsed ms. A judge checks the
+  working, not a claim about it.</p>
 </section>
 
 <section class="slide"><span class="num">09</span>
-  <div class="eyebrow">Results · provided dataset</div>
-  <h2>Four planted movements. Four found. No false positives.</h2>
+  <div class="eyebrow">Results · one dashboard, one row per anomaly</div>
+  <h2>What broke, and why, in one place</h2>
   <div class="wrap"><table>
-    <tr><th>metric</th><th>window</th><th>change</th><th>verdict</th><th>responsible</th></tr>
-    <tr><td>request volume</td><td>Jun 21</td><td>−45.8%</td><td class="sig">global</td><td>—</td></tr>
-    <tr><td>fill rate</td><td>Jun 23–25</td><td>−4.3%</td><td class="hit">localized</td><td>os_version = Android 15</td></tr>
-    <tr><td>revenue</td><td>Jun 21</td><td>−46.5%</td><td class="sig">global</td><td>—</td></tr>
-    <tr><td>eCPM</td><td>Jun 19–22</td><td>−2.4%</td><td class="hit">localized</td><td>category = finance</td></tr>
-    <tr><td>fill rate</td><td>Jun 29–30</td><td>−1.1%</td><td class="sig">partial</td><td>JP × iOS 18.1</td></tr>
+    <tr><th>metric</th><th>window</th><th>moved</th><th>verdict</th><th>cause</th><th>explains</th></tr>
+    <tr><td>request volume</td><td>Jun 21</td><td>−45.8%</td><td class="sig">global</td><td>no segment responsible</td><td>0%</td></tr>
+    <tr><td>fill rate</td><td>Jun 23–25</td><td>−4.3%</td><td class="hit">localized</td><td>os_version = Android 15</td><td class="hit">98.2%</td></tr>
+    <tr><td>revenue</td><td>Jun 21</td><td>−46.4%</td><td class="sig">global</td><td>no segment responsible</td><td>3.2%</td></tr>
+    <tr><td>eCPM</td><td>Jun 19–22</td><td>−2.4%</td><td class="hit">localized</td><td>category = finance</td><td class="hit">97.9%</td></tr>
+    <tr><td>fill rate</td><td>Jun 29–30</td><td>−1.1%</td><td class="sig">partial</td><td>country = JP → iOS 18.1</td><td>45.9%</td></tr>
   </table></div>
-  <p style="margin-top:1.2rem">None of the ten weekends flagged. Full report in
-  <strong>20 seconds</strong>.</p>
+  <p style="margin-top:1.1rem"><strong>explains</strong> — how much of the movement
+  disappears when that segment is removed. <span class="hit">98%</span> means it
+  <em>is</em> the cause. <span class="sig">0%</span> means nothing is.</p>
+  <p>Four planted movements, four found, zero false positives, no weekend flagged.
+  Full report in <strong>20 seconds</strong>.</p>
 </section>
 
 <section class="slide"><span class="num">10</span>
@@ -264,6 +270,9 @@ webhook → GitHub → self-hosted runner → full investigation
   because we already knew the answer.</p>
   <p>Proven segment-agnostic: we broke <strong>country = JP</strong>, which appears
   nowhere in any configuration. Caught at −19.4 wobbles and correctly attributed.</p>
+  <p>And it ends somewhere a human looks — a HyperDX dashboard listing every
+  anomaly with its cause, plus a saved view pinned per finding. <strong>Nobody
+  copied anything across.</strong></p>
 </section>
 
 <section class="slide"><span class="num">13</span>
@@ -277,6 +286,9 @@ webhook → GitHub → self-hosted runner → full investigation
     unseen-incident path. It found two silent bugs on its first run.</p></div>
     <div class="card"><h3>Replay</h3><p>Steps a cutoff through the timeline so the
     detector sees only the past. <strong>6-hour time-to-detect.</strong></p></div>
+    <div class="card"><h3>Inspectable</h3><p>Every trace carries the SQL, its
+    parameters and what it returned — so a conclusion can be re-run, not just
+    read.</p></div>
     <div class="card"><h3>Degrades, doesn't crash</h3><p>A baseline ladder for short
     slices; tracing and acting can fail without taking the diagnosis with them.</p></div>
   </div>
@@ -303,9 +315,11 @@ webhook → GitHub → self-hosted runner → full investigation
 <section class="slide"><span class="num">15</span>
   <div class="eyebrow">Close</div>
   <h1>Every number is checked.<br>Every claim is traced.<br>Silence is a valid answer.</h1>
-  <p style="margin-top:1.4rem;font-family:var(--mono);font-size:.85rem;color:var(--ink-faint)">
-  github.com/ss-loves-AC/parts-watcher-2<br>
-  reports/REPORT-provided-dataset.md · docs/UNSEEN_RUNBOOK.md</p>
+  <div class="grid g3" style="margin-top:1.8rem">
+    <div class="card"><h3>The list</h3><p>HyperDX → <em>RCA — what broke and why</em></p></div>
+    <div class="card"><h3>The reasoning</h3><p>Langfuse → one trace per run, with the SQL</p></div>
+    <div class="card"><h3>The code</h3><p>github.com/ss-loves-AC/parts-watcher-2</p></div>
+  </div>
 </section>
 
 </div>
