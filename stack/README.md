@@ -55,6 +55,7 @@ docker compose up -d --force-recreate --no-deps librechat
 # wire this project's shape into the stack
 docker compose exec -T mongodb mongosh --quiet hyperdx   < ../scripts/provision-clickstack.js
 docker compose exec -T mongodb mongosh --quiet LibreChat < ../scripts/provision-librechat-agent.js
+python3 ../scripts/provision-dashboard.py    # the front door: anomalies + causes
 ```
 
 Then `python3 -m engine.run --out out/` — the pipeline reads ClickHouse Cloud,
