@@ -16,6 +16,35 @@
 # every metric, and NOT combining a continuation throws away the history that
 # makes detection work. So compare the ranges and let the data decide.
 #
+# ---------------------------------------------------------------------------
+# EACH ERA KEEPS ITS OWN ATTRIBUTION. The subtlety that cost us a whole run.
+#
+# The spec ships regenerated dimension CSVs: same IDs, different attribute
+# values. It warns that joining NEW events to OLD dimensions gives wrong
+# segments. The mirror of that is just as wrong and far less obvious: joining
+# OLD events to NEW dimensions.
+#
+# We did exactly that — truncated ad_events and re-joined all 10.5M rows
+# (history included) against the new CSVs. The ID -> attribute map turned out
+# to be a uniform reshuffle, so every historical event got a random label:
+#
+#   os_version fill rate, Jun 23-25    true      re-attributed
+#     Android 15                       0.4333    0.7000
+#     Android 14                       0.7835    0.7594
+#     iOS 18.1                         0.7848    0.7549
+#
+# A textbook localized incident smeared into a flat band. The detector called
+# it "global" — correctly, on data that was wrong. Worse, every segment's
+# baseline collapsed toward the population mean, so real July structure then
+# read as a huge deviation against it: region MEA "fell" 2.875 -> 1.118 when
+# MEA's eCPM had been 1.134 all along and nothing had happened to it.
+#
+# So: new events join the new CSVs, history is carried over ALREADY
+# denormalized, and the two are never re-attributed. Segment semantics survive
+# the seam even though the IDs behind them do not — MEA is still the low-eCPM
+# region on both sides — which is what makes the baseline comparable at all.
+# ---------------------------------------------------------------------------
+#
 #   scripts/load-unseen.sh /path/to/unseen [target_db]
 set -euo pipefail
 
@@ -66,9 +95,7 @@ DISJOINT=$(ch --query "SELECT toDateTime('$NEW_MIN') > toDateTime('$OLD_MAX')")
 
 if [[ "$DISJOINT" == "1" ]]; then
   echo "==> CONTINUATION — new events begin after ours end; combining for history"
-  ch --query "
-    INSERT INTO $DB.ad_events_raw
-    SELECT * FROM $BASE_DB.ad_events_raw"
+  echo "    history is carried over already denormalized, NOT re-joined (see header)"
   MODE=continuation
 else
   echo "==> REPLACEMENT — ranges overlap; loading the new events alone"
@@ -85,10 +112,30 @@ for t in apps advertisers geo_device; do
   printf '    %-14s %s rows\n' "$t" "$n"
 done
 
+# Did the regeneration actually change the mapping? Cheap to ask, and the
+# answer decides whether the history may be re-attributed at all. Agreement at
+# chance level (1/n_values) means a reshuffle; near 1.0 means the CSVs are the
+# same tables and either attribution would do.
+if [[ "$MODE" == "continuation" ]]; then
+  echo "==> seam check — did the regeneration move the ID -> attribute map?"
+  ch --query "
+    SELECT
+        round(avg(p.os_version = u.os_version), 4)   AS os_agreement,
+        round(avg(p.country    = u.country),    4)   AS country_agreement,
+        round(1.0 / uniqExact(u.os_version),    4)   AS chance_level
+    FROM $BASE_DB.geo_device AS p
+    INNER JOIN $DB.geo_device AS u USING (geo_device_id)
+    FORMAT Vertical SETTINGS select_sequential_consistency = 1"
+  echo "    at chance level the eras are different universes — hence per-era attribution"
+fi
+
 echo "==> cube + denormalized fact"
 sed "s/{{DB}}/$DB/g" "$ROOT/load/cube.sql" | ch --multiquery
 ch --query "TRUNCATE TABLE $DB.ad_events"
 ch --query "TRUNCATE TABLE $DB.segment_cube"
+
+# The NEW events only, against the NEW dimensions. ad_events_raw deliberately
+# still holds nothing but the new slice, so this join cannot reach history.
 ch --query "
 INSERT INTO $DB.ad_events
 SELECT
@@ -109,6 +156,13 @@ LEFT JOIN $DB.advertisers AS v ON v.advertiser_id = e.advertiser_id
 LEFT JOIN $DB.geo_device  AS g ON g.geo_device_id = e.geo_device_id
 SETTINGS join_algorithm = 'parallel_hash'"
 
+# History, carried over with the attribution it was loaded under. The MV on
+# ad_events fires per INSERT, so the cube picks up both eras without a rebuild.
+if [[ "$MODE" == "continuation" ]]; then
+  echo "    + history from $BASE_DB.ad_events (original attribution, not re-joined)"
+  ch --query "INSERT INTO $DB.ad_events SELECT * FROM $BASE_DB.ad_events"
+fi
+
 echo "==> verify"
 ch --query "
 SELECT count() AS rows, min(event_time) AS t0, max(event_time) AS t1,
@@ -116,6 +170,21 @@ SELECT count() AS rows, min(event_time) AS t0, max(event_time) AS t1,
        countIf(category='unknown') AS unmatched_app,
        uniqExact(os_version) AS distinct_os, uniqExact(country) AS distinct_country
 FROM $DB.ad_events FORMAT Vertical SETTINGS select_sequential_consistency=1"
+
+# Per-era, so an attribution mistake shows as a level shift instead of hiding.
+# eCPM by region is the sharpest probe: it is strongly region-dependent, so if
+# history has been re-attributed the two eras converge on the population mean.
+if [[ "$MODE" == "continuation" ]]; then
+  echo "    eCPM by region per era — these should track, not converge:"
+  ch --query "
+    SELECT region,
+           round(sumIf(revenue, event_time <= '$OLD_MAX') /
+                 nullIf(sumIf(is_impression, event_time <= '$OLD_MAX'), 0) * 1000, 3) AS history,
+           round(sumIf(revenue, event_time >  '$OLD_MAX') /
+                 nullIf(sumIf(is_impression, event_time >  '$OLD_MAX'), 0) * 1000, 3) AS new_slice
+    FROM $DB.ad_events GROUP BY region ORDER BY region
+    FORMAT PrettyCompact SETTINGS select_sequential_consistency = 1"
+fi
 ch --query "
 SELECT throwIf(count() > 0, 'FATAL: a dimension collapsed in segment_cube')
 FROM (SELECT dim_name, uniqExact(dim_value) v FROM $DB.segment_cube

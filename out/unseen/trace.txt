@@ -1,8 +1,8 @@
 Langfuse traces
 ===============
-request volume   Jun 21                 https://langfuse.datagan.site/trace/e8390d36-3c79-4bd7-a6be-4f39e122c872?observation=c26c3d9d-618b-4ed5-8a8f-b857e12f121c
-fill rate        Jul 8–Jul 9            https://langfuse.datagan.site/trace/e8390d36-3c79-4bd7-a6be-4f39e122c872?observation=56bae3c7-1f56-4baa-9f69-e96564f9e1fe
-eCPM             Jul 6 00:00 to Jul 10 23:00 https://langfuse.datagan.site/trace/e8390d36-3c79-4bd7-a6be-4f39e122c872?observation=b1d3669c-2798-4870-8f93-1c6d63b72c7f
-fill rate        Jun 23–Jun 25          https://langfuse.datagan.site/trace/e8390d36-3c79-4bd7-a6be-4f39e122c872?observation=bea345e3-6a0e-4508-bb8f-f4b8c5f4013a
-revenue          Jun 21                 https://langfuse.datagan.site/trace/e8390d36-3c79-4bd7-a6be-4f39e122c872?observation=de8fe2e3-3e85-48f3-a65d-2c0f01034f3f
-revenue          Jul 9                  https://langfuse.datagan.site/trace/e8390d36-3c79-4bd7-a6be-4f39e122c872?observation=e236ade5-64ef-46ac-a640-0aae7e3fb61a
+request volume   Jun 21                 https://langfuse.datagan.site/trace/edb983e6-e996-4096-8e92-596d62f32004?observation=04c583af-38c1-4ea8-99e2-e9d39220fe46
+fill rate        Jul 8–Jul 9            https://langfuse.datagan.site/trace/edb983e6-e996-4096-8e92-596d62f32004?observation=1d27f68f-e058-4ab5-9966-a5265027ac09
+eCPM             Jul 6 00:00 to Jul 10 23:00 https://langfuse.datagan.site/trace/edb983e6-e996-4096-8e92-596d62f32004?observation=11a5f006-d579-4787-b08c-619757df6d85
+fill rate        Jun 23–Jun 25          https://langfuse.datagan.site/trace/edb983e6-e996-4096-8e92-596d62f32004?observation=018c18fc-268c-4cb6-a07d-1f087cd1fb07
+revenue          Jun 21                 https://langfuse.datagan.site/trace/edb983e6-e996-4096-8e92-596d62f32004?observation=875d9a40-e12e-4546-99bb-d28cce7e79c0
+revenue          Jul 9                  https://langfuse.datagan.site/trace/edb983e6-e996-4096-8e92-596d62f32004?observation=d6dee213-d746-485b-b26e-59cb79cf77f8

@@ -87,6 +87,20 @@ def _sql_array(values) -> str:
                           for v in values) + "]"
 
 
+def _share(fraction: float) -> str:
+    """Phrase a share-of-movement, which is not always a sensible percentage.
+
+    Removing a segment can leave the movement UNCHANGED (fraction ~0) or make
+    it LARGER (fraction < 0, the segment was pulling the metric the other way).
+    Formatting those as a percentage produced "-0% of the movement" and
+    "-14% of the movement", which read as typos rather than as findings.
+    """
+    if fraction <= 0.005:
+        return ("none of the movement — removing it leaves the movement as "
+                "large or larger")
+    return f"only {fraction * 100:.0f}% of the movement"
+
+
 def _window_end(inc: Incident) -> str:
     """The exclusive end recorded by the detector, where the grain was known."""
     return inc.end_exclusive
@@ -208,14 +222,22 @@ def scan(client: Client, inc: Incident, weeks: int = 3) -> Attribution:
                     "why": f"stood out at {top['vs_global'] * 100:+.1f}% against the "
                            f"population, but removing it leaves "
                            f"{without_change * 100:+.2f}% of the original "
-                           f"{all_change * 100:+.2f}% — it accounts for only "
-                           f"{explained_fraction * 100:.0f}% of the movement",
+                           f"{all_change * 100:+.2f}% — it accounts for "
+                           f"{_share(explained_fraction)}",
                 }
             ] + [
                 {
                     "what": f"{c['dimension_label']} = {c['value']}",
-                    "why": f"moved {c['vs_global'] * 100:+.1f}% relative to the "
-                           f"population — within normal spread",
+                    # Not "within normal spread" — we never tested that, and
+                    # +38.6% is plainly not a normal spread. No ordering claim
+                    # either: `top` is the removal test's pick, not the
+                    # largest departure. All we can honestly say is that the
+                    # strongest candidate already failed, so no segment here
+                    # earned the blame.
+                    "why": f"departed the population by "
+                           f"{c['vs_global'] * 100:+.1f}%, but no segment "
+                           f"survived the removal test — departure alone does "
+                           f"not make a segment the cause",
                 }
                 for c in cands[1:4]
             ],
@@ -227,10 +249,18 @@ def scan(client: Client, inc: Incident, weeks: int = 3) -> Attribution:
     ruled_out = [
         {
             "what": f"{c['dimension_label']} = {c['value']}",
-            "why": f"moved {c['vs_global'] * 100:+.1f}% relative to the population, "
-                   f"far less than the {top['vs_global'] * 100:+.1f}% of "
+            # Do NOT rank these against the culprit. The culprit is whichever
+            # segment survived the REMOVAL test, not whichever departed most —
+            # app_00106 departs +39.0% where the accused iOS 17.5 departs
+            # -35.8%. Claiming an ordering here produced "moved -58.5% ... far
+            # less than the -57.1% of MEA", which is false twice over. The
+            # true reason they are out is the thesis of the whole project:
+            # departing the population is not the same as causing the move.
+            "why": f"departed the population by "
+                   f"{c['vs_global'] * 100:+.1f}%, but removing it does not "
+                   f"shrink the movement — the removal test selected "
                    f"{DIM_LABELS.get(top['dimension'], top['dimension'])} "
-                   f"= {top['value']}",
+                   f"= {top['value']} instead",
         }
         for c in cands[1:5]
     ]

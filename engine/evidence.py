@@ -91,7 +91,12 @@ def build(att: Attribution) -> dict:
             "its_value_before": _fmt(metric, c["baseline"]),
             "its_value_during": _fmt(metric, c["incident"]),
             "its_change": _pct(c["seg_change"]),
-            "vs_everything_else": _pct(c["vs_global"]),
+            # NOT "everything else's change" — vs_global is a ratio of ratios
+            # (sql/segment_scan.sql), i.e. how far this segment moved BEYOND
+            # the population. Naming it after the population's own change put
+            # "-57.1% for everything else" next to a proof line saying all
+            # traffic moved -9.4%, in the same paragraph.
+            "beyond_the_population": _pct(c["vs_global"]),
             "evidence_strength": (
                 f"{abs(c['z']):.0f} standard errors" if c.get("z") is not None
                 else "not applicable to this metric"

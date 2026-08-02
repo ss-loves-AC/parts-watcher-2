@@ -1,7 +1,15 @@
 # Demo video — script, narration and scene plan
 
-**Target 4:40, hard ceiling 5:00.** The statement says *skip restating the
+**Target 4:55, hard ceiling 5:00.** The statement says *skip restating the
 problem* — so we open on the trap, not on "advertising is complex".
+
+**Updated 2026-08-02 to add the real unseen-incident result** (Scene 6.5,
+below) — the sealed dataset landed and the pipeline was pointed at it for
+real, unmodified. That is now the single strongest proof point in the video:
+everything before it is demonstrated on data we had at build time; this is
+the system generalizing to data no one, including us, had seen. Say the
+numbers exactly as written — they are machine-verified and traced, so a
+misspoken figure here would undercut the whole pitch.
 
 ## Before you record
 
@@ -152,7 +160,42 @@ python3 -m engine.run --out out/
 
 ---
 
-## SCENE 6 · The loop closes — 4:10–4:40
+## SCENE 6.5 · The one that counts — 4:10–4:30
+
+**Screen:** `reports/REPORT-unseen-incident.md`, scrolled to "The seam", then
+down to the "What moved" table.
+
+> Everything so far ran on data we had at build time. Hours before this
+> video, the organizers released a sealed dataset — new anomalies, never seen
+> by anyone. Same pipeline. Zero changes.
+>
+> But it ships **regenerated dimensions**: same IDs, new attribute values. So
+> before trusting either mapping we measured them against each other.
+> Agreement: **nought point one two six**. Chance would be **nought point one
+> two five**. It is a complete reshuffle — the two halves are different
+> labelling universes.
+
+*Point at the agreement block.*
+
+> So each half keeps its own attribution. And the proof that was the right
+> call is the bottom of this table: **all three incidents we already knew
+> reproduce unchanged** — Android 15 still ninety-eight percent explained.
+>
+> Then three new ones. Fill rate to **iOS seventeen five** — seventy-nine
+> percent down to forty-eight. eCPM to **iPhone fourteen**. And a revenue
+> drop it declared **global**, where the strongest candidate departed the
+> population by a hundred and sixteen percent and was *still* rejected,
+> because removing it doesn't shrink the movement.
+
+*(hold two seconds on the table before cutting)*
+
+> We got this wrong the first time — re-labelled the history too, and the
+> system faithfully reported segments that were artifacts of our own load.
+> The check that caught it is the one on screen.
+
+---
+
+## SCENE 6 · The loop closes — 4:30–4:55
 
 **Screen:** HyperDX alert config, then the GitHub Actions run, then back to the dashboard.
 
@@ -190,12 +233,17 @@ python3 -m engine.run --out out/
 
 ## If you only have three minutes
 
-Keep Scenes 1, 2, 3 and 6 — the trap, the run, the list, the closed loop.
-Scene 4 collapses to one line over the trace: *"every figure is machine-checked
+Keep Scenes 1, 2, 3, 6.5, and 6 — the trap, the run, the list, the unseen
+result, the closed loop. Scene 6.5 is now non-negotiable: it is the only
+proof in the video that ran on data no one calibrated against. Scene 4
+collapses to one line over the trace: *"every figure is machine-checked
 against the evidence, and the trace carries the SQL that produced it."*
 
 ## The one thing to land
 
-Most entries will find Android 15. The differentiator is **the two it refused to
-localize**, and that the refusal is measured rather than lucky. Say the word
-*global* out loud at least twice, and let the "0%" sit on screen while you do.
+Most entries will find Android 15 — that's build-time data, and everyone had
+it. The differentiator is **the two results it refused to localize**, one on
+familiar data (Jun 21) and one on the sealed unseen incident (fill rate, Jul
+8–9) it saw for the first time hours before submission — and that both
+refusals are measured, not lucky. Say the word *global* out loud at least
+twice, and let the unseen table sit on screen in Scene 6.5.

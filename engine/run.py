@@ -281,7 +281,7 @@ def _write_report(out_dir: Path, evidence: list[dict], sections: list[str],
         if c:
             lines.append(f"- **culprit** {c['dimension']} = `{c['value']}` — "
                          f"{c['its_value_before']} → {c['its_value_during']} "
-                         f"({c['its_change']}), {c['vs_everything_else']} vs everything else"
+                         f"({c['its_change']}), {c['beyond_the_population']} beyond the population"
                          + (f", {c['evidence_strength']}" if c.get("evidence_strength") else ""))
         lines.append(f"- **proof** {ev['proof']}")
         if ev.get("cost_of_the_incident"):

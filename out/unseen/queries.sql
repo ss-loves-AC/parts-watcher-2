@@ -8,7 +8,7 @@
 --   detect.sql : weeks=3 threshold=4.0 grain=daily+hourly
 --   scan       : metric=requests min_z=4.0
 
--- fill rate · Jul 8–Jul 9 · verdict=global
+-- fill rate · Jul 8–Jul 9 · verdict=partial
 --   window     : 2026-07-08 00:00:00 -> 2026-07-10 00:00:00
 --   database   : unseen
 --   detect.sql : weeks=3 threshold=4.0 grain=daily+hourly
@@ -20,7 +20,7 @@
 --   detect.sql : weeks=3 threshold=4.0 grain=daily+hourly
 --   scan       : metric=ecpm min_z=4.0
 
--- fill rate · Jun 23–Jun 25 · verdict=global
+-- fill rate · Jun 23–Jun 25 · verdict=localized
 --   window     : 2026-06-23 00:00:00 -> 2026-06-26 00:00:00
 --   database   : unseen
 --   detect.sql : weeks=3 threshold=4.0 grain=daily+hourly
@@ -32,7 +32,7 @@
 --   detect.sql : weeks=3 threshold=4.0 grain=hourly+daily
 --   scan       : metric=revenue min_z=4.0
 
--- revenue · Jul 9 · verdict=partial
+-- revenue · Jul 9 · verdict=global
 --   window     : 2026-07-09 00:00:00 -> 2026-07-10 00:00:00
 --   database   : unseen
 --   detect.sql : weeks=3 threshold=4.0 grain=hourly+daily

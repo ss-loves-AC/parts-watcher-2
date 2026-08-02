@@ -79,9 +79,20 @@ def check_numbers(prose: str, evidence: dict) -> set[str]:
     ordinary sentences and are not the failure mode we care about.
     """
     allowed = _numbers_in(json.dumps(evidence))
+    # Match on magnitude, not sign. The evidence carries "-6.64%"; correct
+    # English is "a 6.64% drop", with the direction in the verb. Comparing
+    # signed tokens rejected that paragraph and printed "unsourced figures:
+    # ['6.64%']" under a diagnosis that was entirely faithful.
+    #
+    # The cost is that a flipped sign would now pass the guard. That is
+    # acceptable here because direction is carried by `ev["direction"]` and by
+    # the verb the model is instructed to use, whereas magnitude is the thing
+    # it could invent. Rejecting true prose is the worse failure: it trains a
+    # reader to ignore the badge.
+    allowed_abs = {t.lstrip("-") for t in allowed}
     unsourced = set()
     for tok in _numbers_in(prose):
-        if tok in allowed:
+        if tok in allowed or tok.lstrip("-") in allowed_abs:
             continue
         bare = tok.strip("$%x").replace(",", "")
         try:
@@ -106,8 +117,8 @@ def template(ev: dict) -> str:
         parts.append(
             f"It localises to {c['dimension']} = {c['value']}, which went "
             f"{c['its_value_before']} to {c['its_value_during']} "
-            f"({c['its_change']}), {c['vs_everything_else']} against everything "
-            f"else."
+            f"({c['its_change']}) — {c['beyond_the_population']} beyond what the "
+            f"population as a whole did."
         )
         parts.append(ev["proof"])
     else:
