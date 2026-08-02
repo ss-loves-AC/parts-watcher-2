@@ -51,7 +51,6 @@ def main() -> None:
         raise SystemExit(f"cannot reach the MCP: {actor.error}")
 
     det_source = actor.source_id("Detections")
-    ad_source = actor.source_id("Ad Events")
     if not det_source:
         raise SystemExit("Detections source missing — run provision-clickstack.js first")
 
@@ -93,16 +92,13 @@ def main() -> None:
             },
         },
     ]
-    if ad_source:
-        tiles.append({
-            "name": "Unfilled ad requests (the underlying data)",
-            "x": 0, "y": 20, "w": 24, "h": 7,
-            "config": {
-                "displayType": "search", "sourceId": ad_source,
-                "where": "is_filled = 0", "whereLanguage": "sql",
-                "select": "event_time, ad_format, category, country, os_version, device_model",
-            },
-        })
+    # No tile over `ad_events` here, deliberately. Its timestamp is
+    # `event_time` (Jun 1 - Jul 10) while every detection tile keys on
+    # `found_at` (when the detector ran). A dashboard has ONE time picker, so
+    # any range that shows the findings leaves the events tile empty and any
+    # range that shows the events empties the findings — it reads as a broken
+    # dashboard. It also scanned 10.5M rows and stalled the render. The raw
+    # events belong in their own view, reached from a finding.
 
     args = {"name": DASHBOARD_NAME, "tiles": tiles, "tags": ["rca"]}
 
