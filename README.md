@@ -34,14 +34,12 @@ defaults to 15 minutes, and findings are stamped when the detector ran, not
 when the incident happened.
 → https://hyperdx.datagan.site
 
-```
-judge@clickathon.local  /  ClickathonJudge2026!
-```
-
 HyperDX's open-source edition is single-team by design — `/register` returns
 `teamAlreadyExists` once a team is created, and there is no anonymous mode. So
 a shared read account is the only way in that does not mean handing over the
-owner's login.
+owner's login. **Those credentials are supplied with the submission, not
+committed here** — see `submission/SUMMARY.md` for what the dashboard shows if
+you would rather not log in at all.
 
 **LibreChat — ask it questions.** Registration is open; sign up with any email,
 pick the *Ad Metrics Analyst* agent.

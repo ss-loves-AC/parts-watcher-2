@@ -16,9 +16,8 @@ exactly what is and isn't modified on the way in.
 | Server version | 26.2.1.525 |
 
 Credentials live in `~/.config/clickhouse/clickathon.env` (mode 600), never in
-the repo. The `default` user's password was set via the Cloud control plane
-(`clickhousectl cloud service reset-password --new-password-hash`), so the
-plaintext never crossed the API.
+the repo. The `default` user's credential was rotated through the Cloud control
+plane with `--new-password-hash`, so only the hash ever crossed the API.
 
 The service's IP access list is `0.0.0.0/0` ("Anywhere"). Convenient for a
 hackathon and for demoing from a different network tomorrow; not a production
