@@ -34,6 +34,11 @@ no named dimensions.
   global and naming a segment would be a fabrication.
 - **verdict** — `localized` one segment did it · `global` no segment did ·
   `partial` a segment is involved but is not the whole story.
+- **source_db** — which run found it. `unseen` is the sealed dataset loaded
+  as a continuation (Jun 1 – Jul 10); `pw` is the originally provided slice
+  alone. Two findings appear only under `pw`: their effects are the two
+  smallest (-2.4%, -1.1%), and adding five days of history shifts the
+  robust scale just enough to put them under the threshold.
 
 _Set the time range to **Last 24 hours** or wider — findings are written when
 the detector runs, not when the incident happened._
@@ -67,7 +72,7 @@ def main() -> None:
                 # brief names ("plain-language diagnosis"), and the columns
                 # before it are the numbers that back it up.
                 "select": ("found_at, metric, window_start, effect_pct, "
-                           "verdict, cause, explained_pct, diagnosis"),
+                           "verdict, cause, explained_pct, source_db, diagnosis"),
             },
         },
         {
@@ -75,7 +80,7 @@ def main() -> None:
             "config": {
                 "displayType": "search", "sourceId": det_source,
                 "where": "verdict = 'localized'", "whereLanguage": "sql",
-                "select": "metric, window_start, effect_pct, cause, explained_pct, diagnosis",
+                "select": "metric, window_start, effect_pct, cause, explained_pct, source_db, diagnosis",
             },
         },
         {
@@ -84,7 +89,7 @@ def main() -> None:
             "config": {
                 "displayType": "search", "sourceId": det_source,
                 "where": "verdict = 'global'", "whereLanguage": "sql",
-                "select": "metric, window_start, effect_pct, cause, explained_pct, diagnosis",
+                "select": "metric, window_start, effect_pct, cause, explained_pct, source_db, diagnosis",
             },
         },
     ]
