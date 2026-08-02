@@ -1,5 +1,12 @@
 # parts-watcher — from alert to answer
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ss-loves-AC/parts-watcher-2)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![ClickHouse](https://img.shields.io/badge/database-ClickHouse-FFCC01.svg)](https://clickhouse.com)
+[![Python 3.x](https://img.shields.io/badge/python-3.x-3776AB.svg)](https://www.python.org)
+[![Tests](https://img.shields.io/badge/tests-12%20passing-brightgreen.svg)](tests/)
+[![Click-a-thon 2026](https://img.shields.io/badge/Click--a--thon-2026-orange.svg)](docs/PROBLEM_STATEMENT.md)
+
 Automated root-cause analysis over 9M ad events in ClickHouse.
 **Click-a-thon 2026 · InMobi track.**
 
