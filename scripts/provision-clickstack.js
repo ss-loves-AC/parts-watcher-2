@@ -225,12 +225,15 @@ db.sources.updateOne(
       // far past normal a finding sits.
       severityTextExpression: "multiIf(abs(peak_wobbles) >= 20, 'error', abs(peak_wobbles) >= 8, 'warn', 'info')",
       serviceNameExpression: 'metric',
-      // The one-line summary a human reads in the list: what moved, by how
-      // much, and what caused it.
-      bodyExpression: "concat(metric, ' ', toString(round(effect_pct, 1)), '% — ', if(cause = '', 'investigating…', cause))",
-      implicitColumnExpression: "concat(metric, ' ', toString(round(effect_pct, 1)), '% — ', if(cause = '', 'investigating…', cause))",
+      // What a human reads in the list is the DIAGNOSIS, not a segment code.
+      // The brief asks for a "plain-language diagnosis ... with explicit
+      // statement of checked-but-ruled-out hypotheses"; `cause` alone reads
+      // `os_version = iOS 17.5`, which answers a different question. Fall back
+      // to the terse line only while an investigation is still running.
+      bodyExpression: "if(diagnosis != '', diagnosis, concat(metric, ' ', toString(round(effect_pct, 1)), '% — ', if(cause = '', 'investigating…', cause)))",
+      implicitColumnExpression: "if(diagnosis != '', diagnosis, concat(metric, ' ', toString(round(effect_pct, 1)), '% — ', if(cause = '', 'investigating…', cause)))",
       defaultTableSelectExpression:
-        'found_at,metric,window_start,effect_pct,verdict,cause,explained_pct,peak_wobbles,baseline_rung',
+        'found_at,metric,window_start,effect_pct,verdict,cause,explained_pct,diagnosis',
       eventAttributesExpression:
         "map('metric', toString(metric), 'verdict', toString(verdict), 'cause', toString(cause), 'grain', toString(grain), 'baseline_rung', toString(baseline_rung), 'source_db', toString(source_db))",
       resourceAttributesExpression: "CAST(map(), 'Map(String, String)')",

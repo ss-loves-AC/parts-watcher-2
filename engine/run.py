@@ -77,6 +77,10 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
     )
 
     all_ev, sections, trace_lines, query_notes = [], [], [], []
+    # Parallel to all_ev. Kept separate because all_ev is serialised verbatim
+    # as evidence.json, and the evidence contract is "what the model was
+    # handed" — the model's own output does not belong in it.
+    all_prose = []
     attributions = []
 
     for inc in incidents:
@@ -129,6 +133,7 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
                         output={"saved_search": pin})
 
         all_ev.append(ev)
+        all_prose.append(prose)
         attributions.append(att)
         verified = not meta["unsourced"]
         sections.append(
@@ -157,16 +162,22 @@ def run(out_dir: Path, use_llm: bool = True) -> int:
     # WHY, so the HyperDX view and a single SQL query both show the anomaly and
     # its cause on one line. Without this a reader has to join two places in
     # their head.
+    # `cause` is a segment identifier; `diagnosis` is the narrated paragraph
+    # the brief actually asks for, ruled-out hypotheses included. Both are
+    # written so the dashboard can lead with the sentence and still filter on
+    # the segment.
     try:
-        for ev, att in zip(all_ev, attributions):
+        for ev, prose, att in zip(all_ev, all_prose, attributions):
             c = att.culprit
             client.query(
                 "ALTER TABLE {db:Identifier}.detections UPDATE "
-                "verdict = {v:String}, cause = {c:String}, explained_pct = {e:Float64} "
+                "verdict = {v:String}, cause = {c:String}, explained_pct = {e:Float64}, "
+                "diagnosis = {d:String} "
                 "WHERE metric = {m:String} AND window_start = {w:DateTime}",
                 {"v": att.verdict,
                  "c": f"{c['dimension']} = {c['value']}" if c else "no segment responsible",
                  "e": round((att.residual or {}).get("explained_fraction", 0) * 100, 1),
+                 "d": prose,
                  "m": att.incident["metric"], "w": att.incident["start"]},
             )
     except Exception as e:

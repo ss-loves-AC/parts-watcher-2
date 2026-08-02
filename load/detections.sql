@@ -34,7 +34,14 @@ CREATE TABLE IF NOT EXISTS {{DB}}.detections
     -- and "why". A reader should not have to join two places in their head.
     verdict        LowCardinality(String) DEFAULT '',
     cause          String DEFAULT '',
-    explained_pct  Float64 DEFAULT 0
+    explained_pct  Float64 DEFAULT 0,
+    -- The narrated diagnosis itself, not just the segment. The brief asks for
+    -- a "plain-language diagnosis ... with explicit statement of
+    -- checked-but-ruled-out hypotheses"; `cause` alone is a segment
+    -- identifier, which is the answer to a different question. Storing the
+    -- prose here means the dashboard shows the diagnosis rather than a code,
+    -- and one row still answers what moved, why, and what was ruled out.
+    diagnosis      String DEFAULT ''
 )
 ENGINE = MergeTree
 PARTITION BY toYYYYMM(found_at)
