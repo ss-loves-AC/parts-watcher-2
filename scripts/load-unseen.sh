@@ -34,6 +34,7 @@ ch() { "$CH" client --host "$CH_HOST" --port 9440 --secure \
 
 echo "==> schema in $DB"
 sed "s/{{DB}}/$DB/g" "$ROOT/load/schema.sql" | ch --multiquery
+sed "s/{{DB}}/$DB/g" "$ROOT/load/detections.sql" | ch --multiquery
 
 echo "==> staging the new events"
 ch --query "TRUNCATE TABLE $DB.ad_events_raw"

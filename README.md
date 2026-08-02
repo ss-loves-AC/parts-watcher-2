@@ -15,10 +15,11 @@ CH_DB=unseen python3 -m engine.run --out out/   # detect → attribute → narra
 
 | | |
 |---|---|
-| **The result** | [`reports/REPORT-provided-dataset.md`](reports/REPORT-provided-dataset.md) — what moved, what caused it, and the proof |
+| **The unseen incident** | [`reports/REPORT-unseen-incident.md`](reports/REPORT-unseen-incident.md) — the sealed dataset, run for real: what moved, what caused it, the proof |
+| **The provided-dataset result** | [`reports/REPORT-provided-dataset.md`](reports/REPORT-provided-dataset.md) — same, on the build-time data |
 | **Summary** | [`submission/SUMMARY.md`](submission/SUMMARY.md) |
 | **How it works** | [`docs/DESIGN.md`](docs/DESIGN.md) · [`docs/architecture.svg`](docs/architecture.svg) |
-| **When the sealed data lands** | [`docs/UNSEEN_RUNBOOK.md`](docs/UNSEEN_RUNBOOK.md) |
+| **Runbook used for the unseen incident** | [`docs/UNSEEN_RUNBOOK.md`](docs/UNSEEN_RUNBOOK.md) |
 
 ## Seeing it run
 

@@ -30,6 +30,7 @@ ch() { "$CH" client --host "$CH_HOST" --port 9440 --secure \
 
 echo "==> schema"
 sed "s/{{DB}}/$DB/g" "$ROOT/load/schema.sql" | ch --multiquery
+sed "s/{{DB}}/$DB/g" "$ROOT/load/detections.sql" | ch --multiquery
 sed "s/{{DB}}/$DB/g" "$ROOT/load/cube.sql" | ch --multiquery
 
 echo "==> dimensions"

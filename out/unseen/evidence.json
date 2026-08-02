@@ -1,0 +1,226 @@
+[
+  {
+    "metric": "request volume",
+    "window": "Jun 21",
+    "expected": "232,053",
+    "actual": "126,052",
+    "direction": "down",
+    "change": "-45.68%",
+    "how_unusual": "38x larger than this metric's normal movement",
+    "verdict": "global",
+    "baseline": "rung1_same_weekday_3w",
+    "detected_at_grain": "daily+hourly",
+    "culprit": null,
+    "proof": "Every segment moved with the population (-43.5%); none stands apart. No single segment is responsible.",
+    "ruled_out": [
+      {
+        "what": "advertiser vertical = travel",
+        "why": "moved +2.5% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "app category = finance",
+        "why": "moved +2.3% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "country = UK",
+        "why": "moved -2.0% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "country = AR",
+        "why": "moved +1.9% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "country = PH",
+        "why": "moved -1.9% relative to the population \u2014 within normal spread"
+      }
+    ]
+  },
+  {
+    "metric": "fill rate",
+    "window": "Jul 8\u2013Jul 9",
+    "expected": "78.4%",
+    "actual": "73.2%",
+    "direction": "down",
+    "change": "-6.64%",
+    "how_unusual": "24x larger than this metric's normal movement",
+    "verdict": "global",
+    "baseline": "rung1_same_weekday_3w",
+    "detected_at_grain": "daily+hourly",
+    "culprit": null,
+    "proof": "Every segment moved with the population (-5.4%); none stands apart. No single segment is responsible.",
+    "ruled_out": [
+      {
+        "what": "app = app_00283",
+        "why": "stood out at +38.6% against the population, but removing it leaves -5.40% of the original -5.38% \u2014 it accounts for only -0% of the movement"
+      },
+      {
+        "what": "app = app_00106",
+        "why": "moved +39.0% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "app = app_00283",
+        "why": "moved +38.6% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "app = app_00202",
+        "why": "moved +38.5% relative to the population \u2014 within normal spread"
+      }
+    ]
+  },
+  {
+    "metric": "eCPM",
+    "window": "Jul 6 00:00 to Jul 10 23:00",
+    "expected": "$2.464",
+    "actual": "$2.255",
+    "direction": "down",
+    "change": "-8.50%",
+    "how_unusual": "16x larger than this metric's normal movement",
+    "verdict": "partial",
+    "baseline": "rung1_same_weekday_3w",
+    "detected_at_grain": "daily+hourly",
+    "culprit": {
+      "dimension": "region",
+      "value": "MEA",
+      "its_value_before": "$2.875",
+      "its_value_during": "$1.118",
+      "its_change": "-61.1%",
+      "vs_everything_else": "-57.1%",
+      "evidence_strength": "not applicable to this metric"
+    },
+    "proof": "Excluding region = MEA, eCPM moved -5.37% against -9.37% for all traffic.",
+    "fully_explained": false,
+    "share_of_movement_explained": "43%",
+    "narrows_to": "Within region = MEA, the movement concentrates in device OS version = Android 14: 3.5289 -> 1.1262 (-68.1%).",
+    "cost_of_the_incident": "Had region = MEA held at its baseline revenue per request, revenue over this window would have been $122.47 higher.",
+    "ruled_out": [
+      {
+        "what": "region = NAM",
+        "why": "moved +68.9% relative to the population, far less than the -57.1% of region = MEA"
+      },
+      {
+        "what": "country = ES",
+        "why": "moved +59.6% relative to the population, far less than the -57.1% of region = MEA"
+      },
+      {
+        "what": "country = NG",
+        "why": "moved -58.5% relative to the population, far less than the -57.1% of region = MEA"
+      },
+      {
+        "what": "country = AE",
+        "why": "moved -58.5% relative to the population, far less than the -57.1% of region = MEA"
+      }
+    ]
+  },
+  {
+    "metric": "fill rate",
+    "window": "Jun 23\u2013Jun 25",
+    "expected": "78.4%",
+    "actual": "75.1%",
+    "direction": "down",
+    "change": "-4.29%",
+    "how_unusual": "15x larger than this metric's normal movement",
+    "verdict": "global",
+    "baseline": "rung1_same_weekday_3w",
+    "detected_at_grain": "daily+hourly",
+    "culprit": null,
+    "proof": "Every segment moved with the population (-4.4%); none stands apart. No single segment is responsible.",
+    "ruled_out": [
+      {
+        "what": "device OS version = Android 15",
+        "why": "stood out at -6.8% against the population, but removing it leaves -3.61% of the original -4.36% \u2014 it accounts for only 17% of the movement"
+      },
+      {
+        "what": "device OS version = Android 15",
+        "why": "moved -6.8% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "app = app_00160",
+        "why": "moved -6.0% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "country = MX",
+        "why": "moved -5.6% relative to the population \u2014 within normal spread"
+      }
+    ]
+  },
+  {
+    "metric": "revenue",
+    "window": "Jun 21",
+    "expected": "$18.13",
+    "actual": "$9.77",
+    "direction": "down",
+    "change": "-46.21%",
+    "how_unusual": "15x larger than this metric's normal movement",
+    "verdict": "global",
+    "baseline": "rung1_same_weekday_3w",
+    "detected_at_grain": "hourly+daily",
+    "culprit": null,
+    "proof": "Every segment moved with the population (-44.8%); none stands apart. No single segment is responsible.",
+    "ruled_out": [
+      {
+        "what": "app = app_00000",
+        "why": "moved +4.2% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "region = MEA",
+        "why": "moved +3.3% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "country = UK",
+        "why": "moved -2.8% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "app = app_00002",
+        "why": "moved +2.8% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "advertiser vertical = travel",
+        "why": "moved +2.8% relative to the population \u2014 within normal spread"
+      }
+    ]
+  },
+  {
+    "metric": "revenue",
+    "window": "Jul 9",
+    "expected": "$22.41",
+    "actual": "$19.15",
+    "direction": "down",
+    "change": "-14.60%",
+    "how_unusual": "5x larger than this metric's normal movement",
+    "verdict": "partial",
+    "baseline": "rung1_same_weekday_3w",
+    "detected_at_grain": "hourly+daily",
+    "culprit": {
+      "dimension": "device OS version",
+      "value": "iOS 17.5",
+      "its_value_before": "$127.66",
+      "its_value_during": "$47.99",
+      "its_change": "-62.4%",
+      "vs_everything_else": "-58.0%",
+      "evidence_strength": "not applicable to this metric"
+    },
+    "proof": "Excluding device OS version = iOS 17.5, revenue moved +6.31% against -10.49% for all traffic.",
+    "fully_explained": false,
+    "share_of_movement_explained": "40%",
+    "narrows_to": "Within device OS version = iOS 17.5, the movement concentrates in country = NG: 3.0462 -> 0.7472 (-75.5%).",
+    "cost_of_the_incident": "Had device OS version = iOS 17.5 held at its baseline revenue per request, revenue over this window would have been $89.49 higher.",
+    "ruled_out": [
+      {
+        "what": "region = NAM",
+        "why": "moved +75.0% relative to the population, far less than the -58.0% of device OS version = iOS 17.5"
+      },
+      {
+        "what": "country = ES",
+        "why": "moved +65.1% relative to the population, far less than the -58.0% of device OS version = iOS 17.5"
+      },
+      {
+        "what": "country = NG",
+        "why": "moved -59.9% relative to the population, far less than the -58.0% of device OS version = iOS 17.5"
+      },
+      {
+        "what": "country = US",
+        "why": "moved +59.5% relative to the population, far less than the -58.0% of device OS version = iOS 17.5"
+      }
+    ]
+  }
+]

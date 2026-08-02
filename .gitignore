@@ -13,9 +13,17 @@ __pycache__/
 .venv/
 .DS_Store
 
-# generated output bundle — except the report, which IS the submission
-out/
+# generated output bundle — except the report, and the unseen-incident
+# bundle, both of which ARE the submission
+#
+# `out/` (a directory match) would exclude out/unseen entirely and no
+# negation below could ever re-include it — git never re-scans inside a
+# directory it has already excluded. out/* only excludes direct children by
+# name, so out/unseen itself stays visible for the negations to act on.
+out/*
 !out/REPORT.md
+!out/unseen
+!out/unseen/*
 
 # the video script stays local — presentation notes, not code
 submission/VIDEO.md
