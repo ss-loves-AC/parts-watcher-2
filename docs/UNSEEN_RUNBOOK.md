@@ -134,9 +134,13 @@ queries.sql      the SQL and parameters behind every figure
 
 ---
 
-## 4. Load it into the UIs (~2 min, optional but cheap)
+## 4. Repoint the UIs at the new database (~2 min, NOT optional)
 
-Makes the submission browsable rather than four files.
+Easy to skip and it fails silently. The HyperDX sources are built from
+`process.env.CH_DB || 'pw'`, so until this runs the dashboard is still reading
+`pw.detections` — it shows the *previous* run's findings, looking for all the
+world like the new ones simply never appeared. Nothing errors, because there
+genuinely are rows there.
 
 ```bash
 CH_HOST=... CH_USER=... CH_PASSWORD=... CH_DB=unseen \
@@ -146,8 +150,17 @@ ssh kite@100.76.253.89 "docker exec -i -e CH_HOST -e CH_USER -e CH_PASSWORD \
   < scripts/provision-clickstack.js
 ```
 
-Repoints the `Ad Events` source at `unseen`, so HyperDX and the LibreChat agent
-both see the new data.
+Repoints **both** sources at `unseen` — `Ad Events` (the raw events) and
+`Detections` (what the dashboard *"RCA — what broke and why"* lists). Verify
+the last block of output before moving on:
+
+```
+  Ad Events    ->  unseen.ad_events
+  Detections   ->  unseen.detections
+```
+
+The dashboard keeps its id across a re-provision, so its saved link stays
+valid — no need to re-run `provision-dashboard.py`.
 
 ---
 
