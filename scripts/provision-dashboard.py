@@ -70,8 +70,8 @@ def main() -> None:
                 # `diagnosis` last and widest: it is the deliverable the
                 # brief names ("plain-language diagnosis"), and the columns
                 # before it are the numbers that back it up.
-                "select": ("found_at, metric, window_start, effect_pct, "
-                           "verdict, cause, explained_pct, source_db, diagnosis"),
+                "select": ("found_at, diagnosis, metric, window_start, "
+                           "effect_pct, verdict, cause, explained_pct, source_db"),
             },
         },
         {
@@ -79,7 +79,7 @@ def main() -> None:
             "config": {
                 "displayType": "search", "sourceId": det_source,
                 "where": "verdict = 'localized'", "whereLanguage": "sql",
-                "select": "metric, window_start, effect_pct, cause, explained_pct, source_db, diagnosis",
+                "select": "metric, diagnosis, window_start, effect_pct, cause, explained_pct, source_db",
             },
         },
         {
@@ -88,7 +88,7 @@ def main() -> None:
             "config": {
                 "displayType": "search", "sourceId": det_source,
                 "where": "verdict = 'global'", "whereLanguage": "sql",
-                "select": "metric, window_start, effect_pct, cause, explained_pct, source_db, diagnosis",
+                "select": "metric, diagnosis, window_start, effect_pct, cause, explained_pct, source_db",
             },
         },
     ]
