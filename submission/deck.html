@@ -80,7 +80,12 @@
       --ink-dim:#3d454f;--ink-faint:#6b7480;--signal:#9a5b00;--cleared:#1f6b42;--critical:#a32226}
     .rail,.hint{display:none}
     .slide{min-height:auto;page-break-after:always;border-bottom:none;padding:2.2rem}
+    .slide:last-child{page-break-after:auto}
     body,html{height:auto}
+    /* Without this the PDF is ONE page. .deck is a scroll-snap container
+       (overflow-y:auto; height:100vh), so print clips it to a single viewport
+       and every page-break-after below never gets the chance to fire. */
+    .deck{overflow:visible;height:auto;scroll-snap-type:none}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>

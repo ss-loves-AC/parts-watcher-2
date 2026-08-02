@@ -1,10 +1,13 @@
 flowchart TB
   subgraph CLOUD["ClickHouse Cloud · ap-south-1 · the primary datastore"]
-    RAW["ad_events_raw<br/>9,000,000 rows · source-faithful"]
+    RAW["ad_events_raw<br/>source-faithful<br/>9M provided + 1.5M unseen"]
+    SEAM{"dimension CSVs regenerated?<br/>measure ID → attribute agreement"}
     FACT["ad_events<br/>denormalized · LowCardinality<br/>no joins downstream"]
-    CUBE["segment_cube · AggregatingMergeTree<br/>2.9M rows · 17 MiB<br/>ARRAY JOIN → 1 row per dim value<br/>plus a __total__ row"]
-    DET[("detections<br/>what the detector found")]
-    RAW -->|"LEFT JOIN dims"| FACT
+    CUBE["segment_cube · AggregatingMergeTree<br/>2.3M rows · 13 MiB<br/>ARRAY JOIN → 1 row per dim value<br/>plus a __total__ row"]
+    DET[("detections<br/>what moved · and, written back,<br/>verdict · cause · diagnosis")]
+    RAW --> SEAM
+    SEAM -->|"agreement at chance 0.126 vs 0.125<br/>each era keeps its own attribution"| FACT
+    SEAM -->|"unchanged: join everything"| FACT
     FACT -->|"MATERIALIZED VIEW"| CUBE
   end
 
@@ -35,6 +38,7 @@ flowchart TB
   GUARD -->|"yes"| OUT
   TMPL --> OUT
   D4 --> ACT
+  D4 ==>|"writes verdict · cause · diagnosis back"| DET
 
   subgraph OBS["Observability plane"]
     LF["Langfuse<br/>one trace per run<br/>investigations nested inside"]
@@ -57,5 +61,5 @@ flowchart TB
   classDef obs fill:#eef7ee,stroke:#5a8a5a,stroke-width:1px
   class RAW,FACT,CUBE,DET store
   class D1,D2,D3,D3B,D4,LLM,ACT,OUT,RUNNER stage
-  class GUARD,TMPL guard
+  class GUARD,TMPL,SEAM guard
   class LF,HDX,LC obs
