@@ -1,0 +1,237 @@
+[
+  {
+    "metric": "request volume",
+    "window": "Jun 21",
+    "expected": "232,053",
+    "actual": "126,052",
+    "direction": "down",
+    "change": "-45.68%",
+    "how_unusual": "38x larger than this metric's normal movement",
+    "verdict": "global",
+    "baseline": "rung1_same_weekday_3w",
+    "detected_at_grain": "daily+hourly",
+    "culprit": null,
+    "proof": "Every segment moved with the population (-43.5%); none stands apart. No single segment is responsible.",
+    "ruled_out": [
+      {
+        "what": "advertiser vertical = gaming",
+        "why": "moved -4.0% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "app category = news",
+        "why": "moved -2.5% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "country = AE",
+        "why": "moved -2.1% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "country = ES",
+        "why": "moved +2.0% relative to the population \u2014 within normal spread"
+      },
+      {
+        "what": "ad format = rewarded",
+        "why": "moved -1.8% relative to the population \u2014 within normal spread"
+      }
+    ]
+  },
+  {
+    "metric": "fill rate",
+    "window": "Jul 8\u2013Jul 9",
+    "expected": "78.4%",
+    "actual": "73.2%",
+    "direction": "down",
+    "change": "-6.64%",
+    "how_unusual": "24x larger than this metric's normal movement",
+    "verdict": "partial",
+    "baseline": "rung1_same_weekday_3w",
+    "detected_at_grain": "daily+hourly",
+    "culprit": {
+      "dimension": "device OS version",
+      "value": "iOS 17.5",
+      "its_value_before": "78.6%",
+      "its_value_during": "47.7%",
+      "its_change": "-39.3%",
+      "beyond_the_population": "-35.8%",
+      "evidence_strength": "156 standard errors"
+    },
+    "proof": "Excluding device OS version = iOS 17.5, fill rate moved +2.57% against -5.38% for all traffic.",
+    "fully_explained": false,
+    "share_of_movement_explained": "52%",
+    "narrows_to": "Within device OS version = iOS 17.5, the movement concentrates in app = app_00004: 0.9104 -> 0.4049 (-55.5%).",
+    "cost_of_the_incident": "Had device OS version = iOS 17.5 held at its baseline revenue per request, revenue over this window would have been $105.41 higher.",
+    "ruled_out": [
+      {
+        "what": "app = app_00106",
+        "why": "departed the population by +39.0%, but removing it does not shrink the movement \u2014 the removal test selected device OS version = iOS 17.5 instead"
+      },
+      {
+        "what": "app = app_00283",
+        "why": "departed the population by +38.6%, but removing it does not shrink the movement \u2014 the removal test selected device OS version = iOS 17.5 instead"
+      },
+      {
+        "what": "app = app_00202",
+        "why": "departed the population by +38.5%, but removing it does not shrink the movement \u2014 the removal test selected device OS version = iOS 17.5 instead"
+      },
+      {
+        "what": "app = app_00107",
+        "why": "departed the population by +36.7%, but removing it does not shrink the movement \u2014 the removal test selected device OS version = iOS 17.5 instead"
+      }
+    ]
+  },
+  {
+    "metric": "eCPM",
+    "window": "Jul 6 00:00 to Jul 10 23:00",
+    "expected": "$2.464",
+    "actual": "$2.255",
+    "direction": "down",
+    "change": "-8.50%",
+    "how_unusual": "16x larger than this metric's normal movement",
+    "verdict": "partial",
+    "baseline": "rung1_same_weekday_3w",
+    "detected_at_grain": "daily+hourly",
+    "culprit": {
+      "dimension": "device model",
+      "value": "iPhone 14",
+      "its_value_before": "$2.518",
+      "its_value_during": "$1.951",
+      "its_change": "-22.5%",
+      "beyond_the_population": "-14.5%",
+      "evidence_strength": "not applicable to this metric"
+    },
+    "proof": "Excluding device model = iPhone 14, eCPM moved -6.09% against -9.37% for all traffic.",
+    "fully_explained": false,
+    "share_of_movement_explained": "35%",
+    "narrows_to": "Within device model = iPhone 14, the movement concentrates in app = app_00074: 2.6584 -> 1.6887 (-36.5%).",
+    "cost_of_the_incident": "Had device model = iPhone 14 held at its baseline revenue per request, revenue over this window would have been $183.28 higher.",
+    "ruled_out": [
+      {
+        "what": "device OS version = Android 13",
+        "why": "departed the population by +21.1%, but removing it does not shrink the movement \u2014 the removal test selected device model = iPhone 14 instead"
+      },
+      {
+        "what": "device model = Galaxy S23",
+        "why": "departed the population by +15.9%, but removing it does not shrink the movement \u2014 the removal test selected device model = iPhone 14 instead"
+      },
+      {
+        "what": "device model = iPhone 14",
+        "why": "departed the population by -14.5%, but removing it does not shrink the movement \u2014 the removal test selected device model = iPhone 14 instead"
+      },
+      {
+        "what": "device model = iPhone 13",
+        "why": "departed the population by +13.9%, but removing it does not shrink the movement \u2014 the removal test selected device model = iPhone 14 instead"
+      }
+    ]
+  },
+  {
+    "metric": "fill rate",
+    "window": "Jun 23\u2013Jun 25",
+    "expected": "78.4%",
+    "actual": "75.1%",
+    "direction": "down",
+    "change": "-4.29%",
+    "how_unusual": "15x larger than this metric's normal movement",
+    "verdict": "localized",
+    "baseline": "rung1_same_weekday_3w",
+    "detected_at_grain": "daily+hourly",
+    "culprit": {
+      "dimension": "device OS version",
+      "value": "Android 15",
+      "its_value_before": "78.5%",
+      "its_value_during": "43.3%",
+      "its_change": "-44.8%",
+      "beyond_the_population": "-42.3%",
+      "evidence_strength": "187 standard errors"
+    },
+    "proof": "Excluding device OS version = Android 15, fill rate moved -0.08% against -4.36% for all traffic.",
+    "fully_explained": true,
+    "share_of_movement_explained": "98%",
+    "cost_of_the_incident": "Had device OS version = Android 15 held at its baseline revenue per request, revenue over this window would have been $69.53 higher.",
+    "ruled_out": [
+      {
+        "what": "any additional cause",
+        "why": "Excluding device OS version = Android 15, fill rate moved -0.08% against -4.36% for all traffic. Nothing else is required to explain it."
+      },
+      {
+        "what": "device model = Galaxy S23",
+        "why": "departed the population by -8.6%, but removing it does not shrink the movement \u2014 the removal test selected device OS version = Android 15 instead"
+      },
+      {
+        "what": "app = app_00246",
+        "why": "departed the population by -7.3%, but removing it does not shrink the movement \u2014 the removal test selected device OS version = Android 15 instead"
+      },
+      {
+        "what": "device model = Redmi Note 12",
+        "why": "departed the population by -6.8%, but removing it does not shrink the movement \u2014 the removal test selected device OS version = Android 15 instead"
+      },
+      {
+        "what": "app = app_00160",
+        "why": "departed the population by -6.0%, but removing it does not shrink the movement \u2014 the removal test selected device OS version = Android 15 instead"
+      }
+    ]
+  },
+  {
+    "metric": "revenue",
+    "window": "Jun 21",
+    "expected": "$18.13",
+    "actual": "$9.77",
+    "direction": "down",
+    "change": "-46.21%",
+    "how_unusual": "15x larger than this metric's normal movement",
+    "verdict": "global",
+    "baseline": "rung1_same_weekday_3w",
+    "detected_at_grain": "hourly+daily",
+    "culprit": null,
+    "proof": "Every segment moved with the population (-44.8%); none stands apart. No single segment is responsible.",
+    "ruled_out": [
+      {
+        "what": "app category = finance",
+        "why": "stood out at -34.7% against the population, but removing it leaves -43.37% of the original -44.81% \u2014 it accounts for only 3% of the movement"
+      },
+      {
+        "what": "app = app_00000",
+        "why": "departed the population by +4.2%, but no segment survived the removal test \u2014 departure alone does not make a segment the cause"
+      },
+      {
+        "what": "app category = ecommerce",
+        "why": "departed the population by +4.2%, but no segment survived the removal test \u2014 departure alone does not make a segment the cause"
+      },
+      {
+        "what": "advertiser vertical = gaming",
+        "why": "departed the population by -4.1%, but no segment survived the removal test \u2014 departure alone does not make a segment the cause"
+      }
+    ]
+  },
+  {
+    "metric": "revenue",
+    "window": "Jul 9",
+    "expected": "$22.41",
+    "actual": "$19.15",
+    "direction": "down",
+    "change": "-14.60%",
+    "how_unusual": "5x larger than this metric's normal movement",
+    "verdict": "global",
+    "baseline": "rung1_same_weekday_3w",
+    "detected_at_grain": "hourly+daily",
+    "culprit": null,
+    "proof": "Every segment moved with the population (-10.5%); none stands apart. No single segment is responsible.",
+    "ruled_out": [
+      {
+        "what": "country = MX",
+        "why": "stood out at +116.1% against the population, but removing it leaves -11.96% of the original -10.49% \u2014 it accounts for none of the movement \u2014 removing it leaves the movement as large or larger"
+      },
+      {
+        "what": "app category = news",
+        "why": "departed the population by +165.8%, but no segment survived the removal test \u2014 departure alone does not make a segment the cause"
+      },
+      {
+        "what": "region = LATAM",
+        "why": "departed the population by +137.9%, but no segment survived the removal test \u2014 departure alone does not make a segment the cause"
+      },
+      {
+        "what": "campaign type = CPC",
+        "why": "departed the population by +120.2%, but no segment survived the removal test \u2014 departure alone does not make a segment the cause"
+      }
+    ]
+  }
+]
